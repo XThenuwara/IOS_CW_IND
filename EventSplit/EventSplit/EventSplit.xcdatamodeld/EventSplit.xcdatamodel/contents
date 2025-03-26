@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="24D70" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="ActivityEntity" representedClassName="ActivityEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="amount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="desc" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="URI"/>
+        <attribute name="outing" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="paidBy" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="participants" optional="YES" attributeType="String"/>
+        <attribute name="references" optional="YES" attributeType="String"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="outingActivity" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OutingEntity" inverseName="outingActivity" inverseEntity="OutingEntity"/>
+        <relationship name="userActivity" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserEntity" inverseName="userActivity" inverseEntity="UserEntity"/>
+    </entity>
+    <entity name="EventEntity" representedClassName=".EventEntity" syncable="YES">
+        <attribute name="amenities" optional="YES" attributeType="String"/>
+        <attribute name="capacity" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="desc" optional="YES" attributeType="String"/>
+        <attribute name="eventDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="locationAddress" optional="YES" attributeType="String"/>
+        <attribute name="locationGPS" optional="YES" attributeType="String"/>
+        <attribute name="locationName" optional="YES" attributeType="String"/>
+        <attribute name="organizerEmail" optional="YES" attributeType="String"/>
+        <attribute name="organizerName" optional="YES" attributeType="String"/>
+        <attribute name="organizerPhone" optional="YES" attributeType="String"/>
+        <attribute name="requirements" optional="YES" attributeType="String"/>
+        <attribute name="sold" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="ticketTypes" optional="YES" attributeType="String"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="weatherCondition" optional="YES" attributeType="String"/>
+        <relationship name="outingEvent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OutingEventEntity" inverseName="outingEventFK" inverseEntity="OutingEventEntity"/>
+    </entity>
+    <entity name="OutingEntity" representedClassName="OutingEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="desc" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="owner" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="participants" optional="YES" attributeType="String"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <relationship name="outingActivity" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ActivityEntity" inverseName="outingActivity" inverseEntity="ActivityEntity"/>
+        <relationship name="outingEvent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OutingEventEntity" inverseName="outingEventOutingFk" inverseEntity="OutingEventEntity"/>
+        <relationship name="outingUser" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserEntity" inverseName="userOuting" inverseEntity="UserEntity"/>
+    </entity>
+    <entity name="OutingEventEntity" representedClassName="OutingEventEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="event" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="outing" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="tickets" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="outingEventFK" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="EventEntity" inverseName="outingEvent" inverseEntity="EventEntity"/>
+        <relationship name="outingEventOutingFk" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OutingEntity" inverseName="outingEvent" inverseEntity="OutingEntity"/>
+    </entity>
+    <entity name="UserEntity" representedClassName="UserEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="avatar" optional="YES" attributeType="String"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="email" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="paymentMethods" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="userActivity" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ActivityEntity" inverseName="userActivity" inverseEntity="ActivityEntity"/>
+        <relationship name="userOuting" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OutingEntity" inverseName="outingUser" inverseEntity="OutingEntity"/>
+    </entity>
+</model>
