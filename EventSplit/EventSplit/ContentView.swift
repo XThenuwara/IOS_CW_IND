@@ -16,7 +16,7 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 ScrollView {
                     VStack {
-                        Navbar()
+                        Navbar(selectedTab: $selectedTab)
                             .padding(.bottom, 10)
                         
                         switch selectedTab {
