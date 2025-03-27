@@ -37,8 +37,6 @@ struct BrowseView: View {
     }
     
     var body: some View {
-        NavigationView {
-    
             VStack(alignment: .leading, spacing: 15) {
                 // Header
                 VStack(alignment: .leading, spacing: 8) {
@@ -130,6 +128,12 @@ struct BrowseView: View {
                     .padding(.vertical)
                 }
             }
+                    .onAppear {
+            eventModel.fetchFilteredEvents()
+            eventModel.fetchEventsFromServer()
+        }
+        .onChange(of: eventModel.eventStore) { newValue in
+        }
             .background(.primaryBackground)
             .navigationBarHidden(true)
             .sheet(isPresented: $showFilterSheet) {
@@ -144,14 +148,6 @@ struct BrowseView: View {
                 }
             }
         }
-        .onAppear {
-            eventModel.fetchFilteredEvents()
-            eventModel.fetchEventsFromServer()
-        }
-        .onChange(of: eventModel.eventStore) { newValue in
-            print("📋 Events updated - Count: \(newValue.count)")
-        }
-    }
 }
 
 #Preview {
