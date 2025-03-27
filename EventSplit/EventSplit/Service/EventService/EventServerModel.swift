@@ -11,6 +11,7 @@ struct EventDTO: Decodable {
     let id: UUID
     let title: String
     let description: String
+    let eventType: String
     let locationName: String?
     let locationAddress: String?
     let locationLongitudeLatitude: String?
@@ -61,7 +62,6 @@ class EventServerModel {
             
             do {
                 let eventDTOs = try JSONDecoder().decode([EventDTO].self, from: data)
-                print("data received: \(eventDTOs)")
                 DispatchQueue.main.async {
                     self.replaceEventStore(with: eventDTOs)
                 }
@@ -82,6 +82,7 @@ class EventServerModel {
         // Convert ServerEvent to EventEntity and append to eventStore
         for eventDTO in eventDTOs {
             if let eventEntity = convertToEventEntity(eventDTO: eventDTO, context: coreDataModel.container.viewContext) {
+                print("Data", eventEntity)
                 coreDataModel.eventStore.append(eventEntity)
             }
         }
@@ -91,21 +92,22 @@ class EventServerModel {
     
     func convertToEventEntity(eventDTO: EventDTO, context: NSManagedObjectContext) -> EventEntity? {
         let eventEntity = EventEntity(context: context)
+    
         eventEntity.id = eventDTO.id
         eventEntity.title = eventDTO.title
         eventEntity.desc = eventDTO.description
         eventEntity.locationName = eventDTO.locationName
         eventEntity.locationAddress = eventDTO.locationAddress
         eventEntity.locationGPS = eventDTO.locationLongitudeLatitude
-        eventEntity.eventDate = ISO8601DateFormatter().date(from: eventDTO.eventDate ?? "")
+        eventEntity.eventDate = DateUtils.shared.parseISO8601Date(eventDTO.eventDate)
         eventEntity.organizerName = eventDTO.organizerName
         eventEntity.organizerPhone = eventDTO.organizerPhone
         eventEntity.organizerEmail = eventDTO.organizerEmail
         eventEntity.weatherCondition = eventDTO.weatherCondition
         eventEntity.capacity = eventDTO.capacity ?? 0
         eventEntity.sold = eventDTO.sold ?? 0
-        eventEntity.createdAt = ISO8601DateFormatter().date(from: eventDTO.createdAt ?? "")
-        eventEntity.updatedAt = ISO8601DateFormatter().date(from: eventDTO.updatedAt ?? "")
+        eventEntity.createdAt = DateUtils.shared.parseISO8601Date(eventDTO.createdAt)
+        eventEntity.updatedAt = DateUtils.shared.parseISO8601Date(eventDTO.updatedAt)
         
         if let amenities = eventDTO.amenities {
             eventEntity.amenities = amenities.joined(separator: ",")
@@ -125,6 +127,12 @@ class EventServerModel {
             } catch {
                 print("Error encoding ticketTypes: \(error)")
             }
+        }
+
+        if let eventType = EventTypeEnum(rawValue: eventDTO.eventType.lowercased()) {
+            eventEntity.eventType = eventType.rawValue
+        } else {
+            eventEntity.eventType = EventTypeEnum.musical.rawValue
         }
         
         return eventEntity

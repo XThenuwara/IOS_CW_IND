@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { EventTypeEnum } from '@/event/enum/event.enum';
 
 @Entity()
 export class Event {
@@ -10,6 +11,13 @@ export class Event {
 
     @Column()
     description: string;
+
+    @Column({
+        type: 'enum',
+        enum: EventTypeEnum,
+        default: EventTypeEnum.MUSICAL
+    })
+    eventType: EventTypeEnum;
 
     @Column()
     locationName: string;

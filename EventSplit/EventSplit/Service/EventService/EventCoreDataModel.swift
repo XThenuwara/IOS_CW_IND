@@ -12,6 +12,7 @@ class EventCoreDataModel: ObservableObject {
     let container: NSPersistentContainer
     @Published var eventStore: [EventEntity] = []
     lazy var serverModel = EventServerModel(coreDataModel: self)
+    private let locationManager = LocationManager()
 
     init() {
         container = NSPersistentContainer(name: "EventSplit")
@@ -33,9 +34,57 @@ class EventCoreDataModel: ObservableObject {
         }
     }
 
+    func fetchFilteredEvents(distance: Int? = nil, type: EventTypeEnum? = nil, startDate: Date? = nil, endDate: Date? = nil) {
+        print("📊 Starting filtered fetch - Distance: \(distance ?? 0)km, Type: \(type?.displayName ?? "All")")
+        let request = NSFetchRequest<EventEntity>(entityName: "EventEntity")
+        
+        var predicates: [NSPredicate] = []
+
+        if let type = type {
+            predicates.append(NSPredicate(format: "eventType == %@", type.rawValue))
+        }
+        
+        // Date filtering
+        if let start = startDate {
+            if let end = endDate {
+                predicates.append(NSPredicate(format: "eventDate >= %@ AND eventDate <= %@", start as NSDate, end as NSDate))
+            } else {
+                predicates.append(NSPredicate(format: "eventDate >= %@", start as NSDate))
+            }
+        }
+        
+        if !predicates.isEmpty {
+            let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+            request.predicate = compoundPredicate
+            print("🔍 Applied predicates: \(compoundPredicate)")
+        }
+        
+        do {
+            var filteredEvents = try container.viewContext.fetch(request)
+            
+            // Post-fetch distance filtering
+            if let distance = distance {
+                filteredEvents = filteredEvents.filter { event in
+                    guard let calculatedDistance = locationManager.calculateDistance(to: event.locationGPS) else {
+                        print("❌ Could not calculate distance for event: \(event.title ?? "Unknown")")
+                        return false
+                    }
+                    
+                    let withinRange = calculatedDistance <= Double(distance)
+                    return withinRange
+                }
+            }
+            
+            eventStore = filteredEvents
+        } catch let error {
+            print("❌ Error fetching filtered events: \(error)")
+        }
+    }
+    
+    
     func addEvent(name: String, description: String) {
         let newEvent = EventEntity(context: container.viewContext)
-        newEvent.title = name
+        newEvent.title = name   
         newEvent.desc = description
         saveData()
     }
@@ -47,7 +96,8 @@ class EventCoreDataModel: ObservableObject {
             print("Error Fetching Data: \(error)")
         }
     }
-
+    
+    // Server Methods
     func fetchEventsFromServer() {
         serverModel.fetchEventsFromServer()
     }
@@ -59,7 +109,6 @@ struct EventCoreDataModelPreview: View {
     var body: some View {
         VStack() {
             Text("Hello World")
-            // Display the events
             List {
                 ForEach(viewModel.eventStore, id: \.id) { event in
                     VStack(alignment: .leading) {
@@ -75,9 +124,8 @@ struct EventCoreDataModelPreview: View {
             }
         }
         .onAppear {
-            // Call the fetchEventsFromServer() method when the view appears
             viewModel.fetchEventsFromServer()
-            viewModel.fetchEvents() // Also fetch from Core Data on appear
+            viewModel.fetchEvents()
         }
     }
 }
