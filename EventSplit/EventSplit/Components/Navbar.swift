@@ -1,6 +1,12 @@
 import SwiftUI
 
 struct Navbar: View {
+
+    @Binding var selectedTab: Int            
+    @State private var showProfileSheet = false
+    @State private var showNotificationsSheet = false
+    @State private var showSearchSheet = false
+    
     var body: some View {
         HStack(spacing: 16) {
             // Logo and App Name
@@ -16,8 +22,9 @@ struct Navbar: View {
             
             // Search and Menu buttons
             HStack(spacing: 16) {
+      
                 Button(action: {
-                    // TODO: Handle search
+                    selectedTab = 0
                 }) {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.primary)
@@ -25,7 +32,7 @@ struct Navbar: View {
                 }
                 
                 Button(action: {
-                    // TODO: Handle Notifications Drawer
+                    showNotificationsSheet.toggle()
                 }) {
                     Image(systemName: "bell")
                         .foregroundColor(.primary)
@@ -33,7 +40,7 @@ struct Navbar: View {
                 }
                 
                 Button(action: {
-                    // TODO: Handle Profile Drawer
+                    showProfileSheet.toggle()
                 }) {
                     Image(systemName: "line.3.horizontal")
                         .foregroundColor(.primary)
@@ -53,9 +60,23 @@ struct Navbar: View {
         .shadow(color: Color.gray.opacity(0.3), radius: 2)
         .padding(.horizontal)
         .padding(.top, 8)
+        .sheet(isPresented: $showProfileSheet) {
+            DrawerModal(isOpen: $showProfileSheet) {
+                ProfileDrawer()
+            }
+        }
+        .sheet(isPresented: $showNotificationsSheet) {
+            DrawerModal(isOpen: $showNotificationsSheet) {
+                NotificationDrawer()
+            }.presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $showSearchSheet) {
+            Text("Search")
+                .presentationDetents([.medium])
+        }
     }
 }
 
 #Preview {
-    Navbar()
+    Navbar(selectedTab: .constant(0))
 }
