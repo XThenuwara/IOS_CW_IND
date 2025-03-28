@@ -32,7 +32,7 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  @UseGuards(AuthGuard)
+  @Roles(UserRole.PUBLIC)
   @Get('me')
   @HttpCode(HttpStatus.OK)
   getProfile(@Request() req) {
