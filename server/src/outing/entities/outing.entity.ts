@@ -27,6 +27,13 @@ export class Outing {
     @OneToMany(() => OutingEvent, outingEvent => outingEvent.outing)
     outingEvents: OutingEvent[];
 
+    @Column({
+        type: 'enum',
+        enum: ['draft', 'in_progress', 'unsettled', 'settled'],
+        default: 'draft'
+    })
+    status: string;
+
     @CreateDateColumn()
     createdAt: Date;
 

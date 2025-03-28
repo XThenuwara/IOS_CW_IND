@@ -62,7 +62,6 @@ export class OutingService {
     return await this.outingRepository.find({
       where: [
         { owner: { id: userId } },
-        { participants: { id: userId } }
       ],
       relations: ['owner', 'participants', 'activities', 'outingEvents'],
     });

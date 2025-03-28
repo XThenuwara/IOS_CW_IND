@@ -15,17 +15,20 @@ import { OutingService } from './outing.service';
 import { CreateOutingDto } from './dto/create-outing.dto';
 import { UpdateOutingDto } from './dto/update-outing.dto';
 import { CreateActivityDto } from './dto/create-activity.dto';
+import { Roles, UserRole } from '../lib/decorator/role.decorator';
 
 @Controller('outing')
 export class OutingController {
   constructor(private readonly outingService: OutingService) {}
 
+  @Roles(UserRole.ADMIN, UserRole.USER)
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async createOuting(@Body() createOutingDto: CreateOutingDto, @Request() req) {
     return await this.outingService.createOuting(createOutingDto, req.user.id);
   }
 
+  @Roles(UserRole.ADMIN, UserRole.USER)
   @Post(':id/activity')
   @HttpCode(HttpStatus.CREATED)
   async addActivity(
@@ -40,6 +43,7 @@ export class OutingController {
     );
   }
 
+  @Roles(UserRole.ADMIN, UserRole.USER)
   @Post(':id/participant/:participantId')
   @HttpCode(HttpStatus.OK)
   async addParticipant(
@@ -49,24 +53,28 @@ export class OutingController {
     return await this.outingService.addParticipant(outingId, participantId);
   }
 
+  @Roles(UserRole.ADMIN, UserRole.USER)
   @Get()
   @HttpCode(HttpStatus.OK)
   async findAll(@Request() req) {
     return await this.outingService.findAll(req.user.id);
   }
 
+  @Roles(UserRole.ADMIN, UserRole.USER)
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async findOne(@Param('id') id: string) {
     return await this.outingService.findOne(id);
   }
 
+  @Roles(UserRole.ADMIN, UserRole.USER)
   @Get(':id/balance')
   @HttpCode(HttpStatus.OK)
   async getOutingBalance(@Param('id') id: string) {
     return await this.outingService.getOutingBalance(id);
   }
 
+  @Roles(UserRole.ADMIN, UserRole.USER)
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   async update(
@@ -75,7 +83,8 @@ export class OutingController {
   ) {
     return await this.outingService.update(id, updateOutingDto);
   }
-
+  
+  @Roles(UserRole.ADMIN, UserRole.USER)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string) {
