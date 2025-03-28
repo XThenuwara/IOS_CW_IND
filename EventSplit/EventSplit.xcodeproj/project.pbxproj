@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		0750F4D72D917AC70075E0F0 /* EventEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0750F4D62D917AC70075E0F0 /* EventEntity+CoreDataProperties.swift */; };
 		0750F4D82D917AC70075E0F0 /* EventEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0750F4D52D917AC70075E0F0 /* EventEntity+CoreDataClass.swift */; };
+		07D46BA12D95DA2B0097F41F /* OutingEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D46BA02D95DA2B0097F41F /* OutingEntity+CoreDataProperties.swift */; };
+		07D46BA22D95DA2B0097F41F /* OutingEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D46B9F2D95DA2B0097F41F /* OutingEntity+CoreDataClass.swift */; };
+		07D46BAF2D96A0AB0097F41F /* AuthEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D46BAD2D96A0AB0097F41F /* AuthEntity+CoreDataClass.swift */; };
+		07D46BB02D96A0AB0097F41F /* AuthEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D46BAE2D96A0AB0097F41F /* AuthEntity+CoreDataProperties.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,6 +35,10 @@
 /* Begin PBXFileReference section */
 		0750F4D52D917AC70075E0F0 /* EventEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EventEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
 		0750F4D62D917AC70075E0F0 /* EventEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EventEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		07D46B9F2D95DA2B0097F41F /* OutingEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutingEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
+		07D46BA02D95DA2B0097F41F /* OutingEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutingEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		07D46BAD2D96A0AB0097F41F /* AuthEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AuthEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
+		07D46BAE2D96A0AB0097F41F /* AuthEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AuthEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		07F9F55C2D9072ED0047C0A2 /* EventSplit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EventSplit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		07F9F5712D9072EE0047C0A2 /* EventSplitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EventSplitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		07F9F57B2D9072EE0047C0A2 /* EventSplitUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EventSplitUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -95,6 +103,10 @@
 		07F9F5532D9072ED0047C0A2 = {
 			isa = PBXGroup;
 			children = (
+				07D46BAD2D96A0AB0097F41F /* AuthEntity+CoreDataClass.swift */,
+				07D46BAE2D96A0AB0097F41F /* AuthEntity+CoreDataProperties.swift */,
+				07D46B9F2D95DA2B0097F41F /* OutingEntity+CoreDataClass.swift */,
+				07D46BA02D95DA2B0097F41F /* OutingEntity+CoreDataProperties.swift */,
 				0750F4D52D917AC70075E0F0 /* EventEntity+CoreDataClass.swift */,
 				0750F4D62D917AC70075E0F0 /* EventEntity+CoreDataProperties.swift */,
 				07F9F55E2D9072ED0047C0A2 /* EventSplit */,
@@ -259,6 +271,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				0750F4D72D917AC70075E0F0 /* EventEntity+CoreDataProperties.swift in Sources */,
+				07D46BAF2D96A0AB0097F41F /* AuthEntity+CoreDataClass.swift in Sources */,
+				07D46BB02D96A0AB0097F41F /* AuthEntity+CoreDataProperties.swift in Sources */,
+				07D46BA12D95DA2B0097F41F /* OutingEntity+CoreDataProperties.swift in Sources */,
+				07D46BA22D95DA2B0097F41F /* OutingEntity+CoreDataClass.swift in Sources */,
 				0750F4D82D917AC70075E0F0 /* EventEntity+CoreDataClass.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
