@@ -16,6 +16,9 @@ export class User {
     @Exclude()
     password: string;
 
+    @Column({ nullable: true })
+    phoneNumber: string;
+
     @Column({ type: 'enum', enum: ['user', 'admin'], default: 'user' })
     role: string;
 
