@@ -28,13 +28,15 @@ struct Login: View {
                     InputField(
                         text: $email,
                         placeholder: "Email or phone number",
-                        icon: "envelope.fill"
+                        icon: "envelope.fill",
+                        label: nil
                     )
                     
                     InputField(
                         text: $password,
                         placeholder: "Password",
                         icon: "lock.fill",
+                        label: nil,
                         isSecure: true
                     )
                     
