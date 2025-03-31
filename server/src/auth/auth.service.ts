@@ -77,7 +77,9 @@ export class AuthService {
 
     this.logger.log(`User successfully logged in: ${user.id}`);
     const payload = { id: user.id, email: user.email, role: user.role };
-    const token = await this.jwtService.signAsync(payload);
+    const token = await this.jwtService.signAsync(payload, {
+      expiresIn: '7d'
+    });
 
     return {
       accessToken: token,

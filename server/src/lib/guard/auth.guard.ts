@@ -18,7 +18,10 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // return true; // Testing purpose
     this.logger.log('AuthGuard');
+
+
     // Check roles if specified
     const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
       ROLES_KEY,
@@ -45,7 +48,7 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      const payload = await this.jwtService.verifyAsync(token as any, {
         secret: process.env.JWT_SECRET,
       });
       this.logger.log("User", payload);
