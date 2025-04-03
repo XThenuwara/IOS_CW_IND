@@ -16,6 +16,7 @@ import { CreateOutingDto } from './dto/create-outing.dto';
 import { UpdateOutingDto } from './dto/update-outing.dto';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { Roles, UserRole } from '../lib/decorator/role.decorator';
+import { Participant } from './dto/participant.dto';
 
 @Controller('outing')
 export class OutingController {
@@ -44,13 +45,13 @@ export class OutingController {
   }
 
   @Roles(UserRole.ADMIN, UserRole.USER)
-  @Post(':id/participant/:participantId')
+  @Post(':id/participant')
   @HttpCode(HttpStatus.OK)
   async addParticipant(
     @Param('id') outingId: string,
-    @Param('participantId') participantId: string,
+    @Body() participant: Participant
   ) {
-    return await this.outingService.addParticipant(outingId, participantId);
+    return await this.outingService.addParticipant(outingId, participant);
   }
 
   @Roles(UserRole.ADMIN, UserRole.USER)
