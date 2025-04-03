@@ -16,10 +16,9 @@ export class Outing {
 
     @Column()
     description: string;
-
-    @ManyToMany(() => User)
-    @JoinTable()
-    participants: User[];
+    
+    @Column('text', { array: true, default: [] })
+    participants: string[];
 
     @OneToMany(() => Activity, activity => activity.outing)
     activities: Activity[];

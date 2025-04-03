@@ -11,6 +11,7 @@ import { AuthGuard } from './lib/guard/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
+import { GroupModule } from './group/group.module';
 
 
 @Module({
@@ -33,6 +34,7 @@ import { AuthModule } from './auth/auth.module';
     OutingModule,
     UserModule,
     AuthModule,
+    GroupModule,
   ],
   controllers: [AppController],
   providers: [
