@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		0750F4D72D917AC70075E0F0 /* EventEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0750F4D62D917AC70075E0F0 /* EventEntity+CoreDataProperties.swift */; };
 		0750F4D82D917AC70075E0F0 /* EventEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0750F4D52D917AC70075E0F0 /* EventEntity+CoreDataClass.swift */; };
+		07A5BC3F2D9C0F8F00374145 /* OutingEventEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A5BC3D2D9C0F8F00374145 /* OutingEventEntity+CoreDataClass.swift */; };
+		07A5BC402D9C0F8F00374145 /* OutingEventEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A5BC3E2D9C0F8F00374145 /* OutingEventEntity+CoreDataProperties.swift */; };
 		07D46BA12D95DA2B0097F41F /* OutingEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D46BA02D95DA2B0097F41F /* OutingEntity+CoreDataProperties.swift */; };
 		07D46BA22D95DA2B0097F41F /* OutingEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D46B9F2D95DA2B0097F41F /* OutingEntity+CoreDataClass.swift */; };
 		07D46BAF2D96A0AB0097F41F /* AuthEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D46BAD2D96A0AB0097F41F /* AuthEntity+CoreDataClass.swift */; };
@@ -35,6 +37,8 @@
 /* Begin PBXFileReference section */
 		0750F4D52D917AC70075E0F0 /* EventEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EventEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
 		0750F4D62D917AC70075E0F0 /* EventEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EventEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		07A5BC3D2D9C0F8F00374145 /* OutingEventEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutingEventEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
+		07A5BC3E2D9C0F8F00374145 /* OutingEventEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutingEventEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		07D46B9F2D95DA2B0097F41F /* OutingEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutingEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
 		07D46BA02D95DA2B0097F41F /* OutingEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutingEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		07D46BAD2D96A0AB0097F41F /* AuthEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AuthEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -49,16 +53,28 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				Views/ReceiptScannerView.swift.bk,
 			);
 			target = 07F9F55B2D9072ED0047C0A2 /* EventSplit */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		0795DBDE2D973C29001442DE /* Exceptions for "EventSplit" folder in "Compile Sources" phase from "EventSplit" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 07F9F5582D9072ED0047C0A2 /* Sources */;
+			membershipExceptions = (
+				Views/ReceiptScannerView.swift.bk,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		07F9F55E2D9072ED0047C0A2 /* EventSplit */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				0762CF0C2D94A111006F728B /* Exceptions for "EventSplit" folder in "EventSplit" target */,
+				0795DBDE2D973C29001442DE /* Exceptions for "EventSplit" folder in "Compile Sources" phase from "EventSplit" target */,
 			);
 			path = EventSplit;
 			sourceTree = "<group>";
@@ -103,6 +119,8 @@
 		07F9F5532D9072ED0047C0A2 = {
 			isa = PBXGroup;
 			children = (
+				07A5BC3D2D9C0F8F00374145 /* OutingEventEntity+CoreDataClass.swift */,
+				07A5BC3E2D9C0F8F00374145 /* OutingEventEntity+CoreDataProperties.swift */,
 				07D46BAD2D96A0AB0097F41F /* AuthEntity+CoreDataClass.swift */,
 				07D46BAE2D96A0AB0097F41F /* AuthEntity+CoreDataProperties.swift */,
 				07D46B9F2D95DA2B0097F41F /* OutingEntity+CoreDataClass.swift */,
@@ -272,6 +290,8 @@
 			files = (
 				0750F4D72D917AC70075E0F0 /* EventEntity+CoreDataProperties.swift in Sources */,
 				07D46BAF2D96A0AB0097F41F /* AuthEntity+CoreDataClass.swift in Sources */,
+				07A5BC3F2D9C0F8F00374145 /* OutingEventEntity+CoreDataClass.swift in Sources */,
+				07A5BC402D9C0F8F00374145 /* OutingEventEntity+CoreDataProperties.swift in Sources */,
 				07D46BB02D96A0AB0097F41F /* AuthEntity+CoreDataProperties.swift in Sources */,
 				07D46BA12D95DA2B0097F41F /* OutingEntity+CoreDataProperties.swift in Sources */,
 				07D46BA22D95DA2B0097F41F /* OutingEntity+CoreDataClass.swift in Sources */,
