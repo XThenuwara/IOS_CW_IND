@@ -6,15 +6,15 @@ struct OutingDTO: Codable {
     let title: String
     let description: String
     let owner: UserDTO
-    let participants: [UserDTO]
+    let participants: [String]  // Changed from [UserDTO] to [String]
     let activities: [ActivityDTO]?
-    let outingEvents: [OutingEventDTO]?
+    let outingEvent: OutingEventDTO?
     let status: OutingStatus
     let createdAt: String
     let updatedAt: String
 }
 
-class OutingServerModel {
+class OutingService {
     private let serverURL = URL(string: "http://localhost:3000/outing")!
     weak var coreDataModel: OutingCoreDataModel?
     private let authModel = AuthCoreDataModel.shared
@@ -35,7 +35,7 @@ class OutingServerModel {
         return request
     }
     
-    func fetchOutingsFromServer() {
+    func fetchOutings() {
         let request = createAuthenticatedRequest(url: serverURL)
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
@@ -62,12 +62,25 @@ class OutingServerModel {
         }.resume()
     }
 
-    func createOuting(title: String, description: String, completion: @escaping (Result<OutingDTO, Error>) -> Void) {
-        let newOuting = [
+    func createOuting(
+        title: String,
+        description: String,
+        eventId: String? = nil,
+        participants: [String]? = nil,
+        completion: @escaping (Result<OutingDTO, Error>) -> Void
+    ) {
+        var newOuting: [String: Any] = [
             "title": title,
             "description": description,
-            "status": "in_progress"
         ]
+        
+        if let eventId = eventId {
+            newOuting["eventId"] = eventId
+        }
+        
+        if let participants = participants {
+            newOuting["participants"] = participants
+        }
         
         var request = createAuthenticatedRequest(url: serverURL, method: "POST")
         
@@ -126,7 +139,7 @@ class OutingServerModel {
         outingEntity.title = outingDTO.title
         outingEntity.desc = outingDTO.description
         
-        // Convert participants to JSON string
+        // Store participants directly as they are already strings
         do {
             let participantsData = try JSONEncoder().encode(outingDTO.participants)
             outingEntity.participants = String(data: participantsData, encoding: .utf8)
@@ -144,18 +157,37 @@ class OutingServerModel {
             }
         }
         
-        if let linkedEvents = outingDTO.outingEvents {
-            do {
-                let linkedEventsData = try JSONEncoder().encode(linkedEvents)
-                outingEntity.linkedEvents =  String(data: linkedEventsData, encoding: .utf8)
-            } catch {
-                print("Erro encodign linkedEvents: \(error)")
+        // Convert outingEvent to OutingEventEntity
+        if let outingEvent = outingDTO.outingEvent {
+            let outingEventEntity = OutingEventEntity(context: context)
+            outingEventEntity.id = outingEvent.id
+            outingEventEntity.outing = outingEntity
+            
+            // Fetch event details using EventService
+            let eventService = EventService(coreDataModel: EventCoreDataModel())
+            eventService.getEvent(eventId: outingEvent.eventId) { result in
+                switch result {
+                case .success(let eventDTO):
+                    if let eventEntity = eventService.convertToEventEntity(eventDTO: eventDTO, context: context) {
+                        outingEventEntity.event = eventEntity
+                    }
+                case .failure(let error):
+                    print("Error fetching event: \(error)")
+                }
             }
+            
+            if let ticketsData = try? JSONEncoder().encode(outingEvent.tickets) {
+                outingEventEntity.tickets = String(data: ticketsData, encoding: .utf8)
+            }
+            
+            outingEventEntity.createdAt = DateUtils.shared.parseISO8601Date(outingDTO.createdAt)
+            outingEventEntity.updatedAt = DateUtils.shared.parseISO8601Date(outingDTO.updatedAt)
+            outingEntity.outingEvent = outingEventEntity
         }
+        
         
         // Calculate total expense from activities
         outingEntity.totalExpense = outingDTO.activities?.reduce(0.0) { $0 + $1.amount } ?? 0.0
-        
         outingEntity.createdAt = DateUtils.shared.parseISO8601Date(outingDTO.createdAt)
         outingEntity.updatedAt = DateUtils.shared.parseISO8601Date(outingDTO.updatedAt)
         outingEntity.status = outingDTO.status.rawValue

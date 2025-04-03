@@ -2,6 +2,7 @@ import SwiftUI
 
 struct OutingCard: View {
     let outing: OutingEntity
+    @State private var showAddExpenseSheet = false
     
     private var title: String { outing.title ?? "Untitled" }
     private var description: String { outing.desc ?? "" }
@@ -111,7 +112,7 @@ struct OutingCard: View {
                 Spacer()
                 
                 Button(action: {
-                    // Handle add expense action
+                    showAddExpenseSheet = true  // Update this
                 }) {
                     Text("Add Expense")
                         .font(.system(size: 14, weight: .medium))
@@ -127,6 +128,12 @@ struct OutingCard: View {
         .background(Color.white)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 2)
+        .sheet(isPresented: $showAddExpenseSheet) {  // Add this
+            DrawerModal(isOpen: $showAddExpenseSheet) {
+                AddExpenseDrawer()
+                    .presentationDetents([.large])
+            }
+        }
     }
 }
 

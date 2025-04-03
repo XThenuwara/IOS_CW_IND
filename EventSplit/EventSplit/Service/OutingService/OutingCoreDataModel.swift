@@ -3,6 +3,7 @@ import CoreData
 
 class OutingCoreDataModel: ObservableObject {
     let container: NSPersistentContainer
+    lazy var serverModel = OutingService(coreDataModel: self)
     @Published var outingStore: [OutingEntity] = []
     
     init() {
@@ -17,7 +18,8 @@ class OutingCoreDataModel: ObservableObject {
     }
     
     func fetchOutings() {
-        let request = NSFetchRequest<OutingEntity>(entityName: "OutingEntity")
+        serverModel.fetchOutings();
+        let request = NSFetchRequest< OutingEntity>(entityName: "OutingEntity")
         do {
             outingStore = try container.viewContext.fetch(request)
         } catch let error {
@@ -25,28 +27,59 @@ class OutingCoreDataModel: ObservableObject {
         }
     }
     
-    func createNewOuting(title: String, description: String, event: EventEntity? = nil) {
-        // Create and save to CoreData
-        let newOuting = OutingEntity(context: container.viewContext)
-        newOuting.id = UUID()
-        newOuting.title = title
-        newOuting.desc = description
-        
-        // Send to server
-        let serverModel = OutingServerModel(coreDataModel: self)
-        serverModel.createOuting(title: title, description: description) { _ in }
-        saveData()
+    func createNewOuting(
+        title: String,
+        description: String,
+        event: EventEntity? = nil,
+        participants: [String]? = nil
+    ) {
+        // Server Call
+        serverModel.createOuting(
+            title: title,
+            description: description,
+            eventId: event?.id?.uuidString.lowercased(),
+            participants: participants
+        ) { result in
+            switch result {
+            case .success(let outingDTO):
+                DispatchQueue.main.async {
+                    if let outingEntity = self.serverModel.convertToOutingEntity(outingDTO: outingDTO, context: self.container.viewContext) {
+                        self.outingStore.append(outingEntity)
+                        self.saveData()
+                    }
+                }
+            case .failure(let error):
+                print("Error creating outing: \(error)")
+            }
+        }
     }
     
     
     func saveData() {
         do {
             try container.viewContext.save()
-            fetchOutings() // Refresh the store after saving
+            fetchOutings()
         } catch let error {
             print("Error saving data: \(error)")
         }
     }
+    
+    func clearAllOutings() {
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = OutingEntity.fetchRequest()
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        
+        do {
+            try container.viewContext.execute(deleteRequest)
+            try container.viewContext.save()
+            outingStore.removeAll() // Clear the in-memory store
+            print("All outings cleared successfully")
+        } catch let error {
+            print("Error clearing outings: \(error)")
+        }
+    }
+
+    // Server Methods
+
 }
 
 struct OutingCoreDataModelPreview: View {
