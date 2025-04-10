@@ -7,8 +7,8 @@ export class Activity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ManyToOne(() => User)
-    paidBy: User;
+    @Column()
+    paidById: string;
 
     @Column('decimal', { precision: 10, scale: 2 })
     amount: number;
@@ -16,20 +16,19 @@ export class Activity {
     @Column()
     title: string;
 
-    @Column()
+    @Column({ nullable: true })
     description: string;
         
-    @Column()
+    @Column({ nullable: true })
     category: string;
 
-    @ManyToMany(() => User)
-    @JoinTable()
-    participants: User[];
+    @Column('simple-array', { nullable: true })
+    participants: string[]
 
     @ManyToOne(() => Outing, outing => outing.activities)
     outing: Outing;
 
-    @Column('simple-array')
+    @Column('simple-array', { nullable: true })
     references: string[];
 
     @CreateDateColumn()

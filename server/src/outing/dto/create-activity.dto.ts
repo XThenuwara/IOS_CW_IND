@@ -18,4 +18,10 @@ export class CreateActivityDto {
     @IsArray()
     @IsString({ each: true })
     participantIds: string[];
+
+    @IsString()
+    paidById: string;
+
+    @IsString()
+    outingId: string;
 }

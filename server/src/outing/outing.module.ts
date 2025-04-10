@@ -8,9 +8,10 @@ import { Activity } from './entities/actvity.entity';
 import { UserModule } from '../user/user.module';
 import { User } from '../user/entities/user.entity';
 import { Event } from '../event/entities/event.entity';
+import { Debt } from './entities/debt.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Event, Outing, OutingEvent, Activity, User, ]), UserModule],
+  imports: [TypeOrmModule.forFeature([Event, Outing, OutingEvent, Activity, User, Debt ]), UserModule],
   controllers: [OutingController],
   providers: [OutingService],
 })
