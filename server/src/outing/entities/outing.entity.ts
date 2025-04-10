@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, JoinTabl
 import { User } from '../../user/entities/user.entity';
 import { Activity } from './actvity.entity';
 import { OutingEvent } from './outing-event.entity';
+import { Debt } from './debt.entity';
 
 @Entity()
 export class Outing {
@@ -38,6 +39,9 @@ export class Outing {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @OneToMany(() => Debt, debt => debt.outing)
+    debts: Debt[];
 }
 
 

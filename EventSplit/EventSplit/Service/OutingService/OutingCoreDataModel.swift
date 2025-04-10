@@ -2,6 +2,7 @@ import SwiftUI
 import CoreData
 
 class OutingCoreDataModel: ObservableObject {
+    static let shared = OutingCoreDataModel()
     let container: NSPersistentContainer
     lazy var serverModel = OutingService(coreDataModel: self)
     @Published var outingStore: [OutingEntity] = []
@@ -19,12 +20,17 @@ class OutingCoreDataModel: ObservableObject {
     
     func fetchOutings() {
         serverModel.fetchOutings();
-        let request = NSFetchRequest< OutingEntity>(entityName: "OutingEntity")
+        let request = NSFetchRequest<OutingEntity>(entityName: "OutingEntity")
         do {
             outingStore = try container.viewContext.fetch(request)
         } catch let error {
             print("Error fetching outings: \(error)")
         }
+    }
+
+    func refreshOutingsFromServer() {
+        outingStore.removeAll()
+        serverModel.fetchOutings()
     }
     
     func createNewOuting(
@@ -54,6 +60,37 @@ class OutingCoreDataModel: ObservableObject {
         }
     }
     
+    func addActivity(
+        title: String,
+        description: String,
+        amount: Double,
+        participantIds: [String],
+        outingId: String,
+        paidById: String,
+        references: [String]? = nil
+    ) {        
+        serverModel.addActivity(
+            title: title,
+            description: description,
+            amount: amount,
+            participantIds: participantIds,
+            paidById: paidById,
+            outingId: outingId,
+            references: references
+        ) { [weak self] result in
+            switch result {
+            case .success(let response):
+                print("✅ Activity added successfully")
+                DispatchQueue.main.async {
+                
+                    self?.fetchOutings()
+                }
+            case .failure(let error):
+                print("❌ Error adding activity: \(error)")
+            }
+        }
+    }
+    
     
     func saveData() {
         do {
@@ -71,15 +108,11 @@ class OutingCoreDataModel: ObservableObject {
         do {
             try container.viewContext.execute(deleteRequest)
             try container.viewContext.save()
-            outingStore.removeAll() // Clear the in-memory store
-            print("All outings cleared successfully")
+            outingStore.removeAll()
         } catch let error {
             print("Error clearing outings: \(error)")
         }
     }
-
-    // Server Methods
-
 }
 
 struct OutingCoreDataModelPreview: View {

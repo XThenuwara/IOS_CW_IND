@@ -7,12 +7,25 @@ struct OutingCard: View {
     private var title: String { outing.title ?? "Untitled" }
     private var description: String { outing.desc ?? "" }
     private var participants: Int {
-        guard let participantsJson = outing.participants,
-              let data = participantsJson.data(using: .utf8),
-              let participants = try? JSONDecoder().decode([UserDTO].self, from: data) else {
+        guard let participantsJson = outing.participants else {
+            print("No participants JSON found")
             return 0
         }
-        return participants.count
+        
+        do {
+        
+            let participantStrings = try JSONDecoder().decode([String].self, from: participantsJson.data(using: .utf8)!)
+           
+            let participants = try participantStrings.compactMap { participantString -> ParticipantDTO? in
+                guard let data = participantString.data(using: .utf8) else { return nil }
+                return try JSONDecoder().decode(ParticipantDTO.self, from: data)
+            }
+            
+            return participants.count
+        } catch {
+            print("[OutingCard.ParticipantsDecode] Error decoding participants:", error)
+            return 0
+        }
     }
     private var totalExpense: Double { outing.totalExpense }
     private var youOwe: Double { totalExpense / Double(max(participants, 1)) }
@@ -55,8 +68,6 @@ struct OutingCard: View {
                 
                 // Location and Details
                 HStack(spacing: 16) {
-                    
-                    // Participants
                     HStack(spacing: 4) {
                         Image(systemName: "person.2")
                             .foregroundColor(.gray)
@@ -64,8 +75,7 @@ struct OutingCard: View {
                             .font(.system(size: 14))
                             .foregroundColor(.gray)
                     }
-                    
-                    // Events
+
                     HStack(spacing: 4) {
                         Image(systemName: "calendar.badge.clock")
                             .foregroundColor(.gray)
@@ -74,7 +84,6 @@ struct OutingCard: View {
                             .foregroundColor(.gray)
                     }
                     
-                    // Activities
                     HStack(spacing: 4) {
                         Image(systemName: "list.bullet")
                             .foregroundColor(.gray)
@@ -89,7 +98,6 @@ struct OutingCard: View {
             
             // Footer
             HStack {
-                // Expense Info
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Total Expense")
                         .font(.system(size: 12))
@@ -112,7 +120,7 @@ struct OutingCard: View {
                 Spacer()
                 
                 Button(action: {
-                    showAddExpenseSheet = true  // Update this
+                    showAddExpenseSheet = true 
                 }) {
                     Text("Add Expense")
                         .font(.system(size: 14, weight: .medium))
@@ -128,66 +136,27 @@ struct OutingCard: View {
         .background(Color.white)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 2)
-        .sheet(isPresented: $showAddExpenseSheet) {  // Add this
+        .sheet(isPresented: $showAddExpenseSheet) {
             DrawerModal(isOpen: $showAddExpenseSheet) {
-                AddExpenseDrawer()
+                AddExpenseDrawer(outing: outing)
                     .presentationDetents([.large])
             }
         }
     }
 }
 
-struct StatusBadge: View {
-    let status: OutingStatus
-    
-    var backgroundColor: Color {
-        switch status {
-        case .draft: return Color.gray.opacity(0.2)
-        case .inProgress: return Color.yellow.opacity(0.2)
-        case .unsettled: return Color.orange.opacity(0.2)
-        case .settled: return Color.green.opacity(0.2)
-        }
-    }
-    
-    var textColor: Color {
-        switch status {
-        case .draft: return .gray
-        case .inProgress: return .yellow
-        case .unsettled: return .orange
-        case .settled: return .green
-        }
-    }
-    
-    var displayText: String {
-        switch status {
-        case .draft : return "Draft"
-        case .inProgress: return "In Progress"
-        case .unsettled: return "Unsettled"
-        case .settled: return "Settled"
-        }
-    }
-    
-    var body: some View {
-        Text(displayText)
-            .font(.system(size: 12, weight: .medium))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(backgroundColor)
-            .foregroundColor(textColor)
-            .cornerRadius(12)
-    }
-}
+
 
 #Preview {
     let context = PersistenceController.preview.container.viewContext
     let outing = OutingEntity(context: context)
-    outing.id = UUID()
+    outing.id = UUID(uuidString: "6a8d5990-40ea-4eb8-91bf-18a6542dd36c")
     outing.title = "Weekend Camping"
     outing.desc = "Fun weekend getaway"
     outing.totalExpense = 950.00
     outing.status = "in_progress"
-    outing.participants = "[{id: 1}]"
-    outing.linkedEvents =  "[{id: 1}]"
+    outing.participants = "[{\"id\": \"123124541\", \"name\": \"John\", \"email\": \"john@example.com\", \"phoneNumber\": \"+94771234567\"}, {\"id\": \"123124542\", \"name\": \"Jane\", \"email\": \"jane@example.com\", \"phoneNumber\": \"+94771234568\"}]"
+    outing.linkedEvents = "[{id: 1}]"
     
     return OutingCard(outing: outing)
         .padding()

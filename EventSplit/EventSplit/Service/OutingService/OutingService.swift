@@ -6,9 +6,10 @@ struct OutingDTO: Codable {
     let title: String
     let description: String
     let owner: UserDTO
-    let participants: [String]  // Changed from [UserDTO] to [String]
+    let participants: [String]
     let activities: [ActivityDTO]?
-    let outingEvent: OutingEventDTO?
+    let outingEvents: [OutingEventDTO]?
+    let debts: [DebtDTO]?
     let status: OutingStatus
     let createdAt: String
     let updatedAt: String
@@ -28,7 +29,7 @@ class OutingService {
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        if let token = authModel.currentUser?.accessToken {
+        if let token = authModel.authEntity?.accessToken {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         
@@ -39,16 +40,26 @@ class OutingService {
         let request = createAuthenticatedRequest(url: serverURL)
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            guard let self = self else { return }
+            guard let self = self else {
+                print("[OutingService.fetchOutings] ⚠️ Self is nil, aborting")
+                return
+            }
             
             if let error = error {
-                print("Error fetching data: \(error)")
+                print("[OutingService.fetchOutings] ❌ Network error: \(error)")
                 return
             }
             
             guard let data = data else {
-                print("No data received")
+                print("[OutingService.fetchOutings] ⚠️ No data received from server")
                 return
+            }
+            
+            // Log the raw data as string
+            if let dataString = String(data: data, encoding: .utf8) {
+                // print("[OutingService.fetchOutings] Raw Data:", dataString)
+            } else {
+                 print("[OutingService.fetchOutings] Data is not valid UTF-8")
             }
             
             do {
@@ -57,11 +68,23 @@ class OutingService {
                     self.replaceOutingStore(with: outingDTOs)
                 }
             } catch {
-                print("Error decoding data: \(error)")
+                print("[OutingService.fetchOutings] ❌ Decoding error: \(error)")
+                if let decodingError = error as? DecodingError {
+                    switch decodingError {
+                    case .keyNotFound(let key, let context):
+                        print("[OutingService.fetchOutings]    Missing key: \(key)")
+                        print("[OutingService.fetchOutings]    Context: \(context)")
+                    case .typeMismatch(let type, let context):
+                        print("[OutingService.fetchOutings]    Type mismatch: expected \(type)")
+                        print("[OutingService.fetchOutings]    Context: \(context)")
+                    default:
+                        print("[OutingService.fetchOutings]    Other decoding error: \(decodingError)")
+                    }
+                }
             }
         }.resume()
     }
-
+    
     func createOuting(
         title: String,
         description: String,
@@ -115,8 +138,72 @@ class OutingService {
             }
         }.resume()
     }
-
-
+    
+    
+    // Activity
+    func addActivity(
+        title: String,
+        description: String,
+        amount: Double,
+        participantIds: [String],
+        paidById: String,
+        outingId: String,
+        references: [String]? = nil,
+        completion: @escaping (Result<Bool, Error>) -> Void
+    ) {
+        
+        let activityURL = serverURL.appendingPathComponent("activity")
+        var request = createAuthenticatedRequest(url: activityURL, method: "POST")
+        
+        let activityData: [String: Any] = [
+            "title": title,
+            "description": description,
+            "amount": amount,
+            "participantIds": participantIds,
+            "outingId": outingId,
+            "paidById": paidById,
+            "references": references ?? []
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: activityData)
+        } catch {
+            print("❌[OutingService.AddActivity] Failed to serialize request body: \(error)")
+            completion(.failure(error))
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌[OutingService.AddActivity] Network error: \(error)")
+                completion(.failure(error))
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                print("❌ [OutingService.AddActivity] Response Status Code: \(httpResponse.statusCode)")
+            }
+            
+            guard let data = data else {
+                print("❌[OutingService.AddActivity] No data received from server")
+                completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse,
+               (200...299).contains(httpResponse.statusCode) {
+                print("✅ Activity added successfully")
+                DispatchQueue.main.async {
+                    completion(.success(true))
+                }
+            } else {
+                completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Server returned error status"])))
+            }
+        }.resume()
+    }
+    
+    
+    
     // Helper Methods
     func replaceOutingStore(with outingDTOs: [OutingDTO]) {
         guard let coreDataModel = self.coreDataModel else { return }
@@ -158,24 +245,14 @@ class OutingService {
         }
         
         // Convert outingEvent to OutingEventEntity
-        if let outingEvent = outingDTO.outingEvent {
+        if let outingEvent = outingDTO.outingEvents?.first {
             let outingEventEntity = OutingEventEntity(context: context)
             outingEventEntity.id = outingEvent.id
             outingEventEntity.outing = outingEntity
             
-            // Fetch event details using EventService
-            let eventService = EventService(coreDataModel: EventCoreDataModel())
-            eventService.getEvent(eventId: outingEvent.eventId) { result in
-                switch result {
-                case .success(let eventDTO):
-                    if let eventEntity = eventService.convertToEventEntity(eventDTO: eventDTO, context: context) {
-                        outingEventEntity.event = eventEntity
-                    }
-                case .failure(let error):
-                    print("Error fetching event: \(error)")
-                }
-            }
-            
+            let eventEntity = EventService(coreDataModel: EventCoreDataModel())
+                .convertToEventEntity(eventDTO: outingEvent.event, context: context)
+            outingEventEntity.event = eventEntity
             if let ticketsData = try? JSONEncoder().encode(outingEvent.tickets) {
                 outingEventEntity.tickets = String(data: ticketsData, encoding: .utf8)
             }
@@ -186,6 +263,28 @@ class OutingService {
         }
         
         
+        // Convert debts to DebtEntities and establish relationship
+        if let debts = outingDTO.debts {
+            print("[OutingService] Converting \(debts.count) debts from DTO")
+            var debtEntities = Set<DebtEntity>()
+            
+            for debtDTO in debts {
+                let debtEntity = DebtEntity(context: context)
+                debtEntity.id = debtDTO.id
+                debtEntity.fromUserId = debtDTO.fromUserId
+                debtEntity.toUserId = debtDTO.toUserId
+                debtEntity.amount = Double(debtDTO.amount) ?? 0.0
+                debtEntity.status = debtDTO.status.rawValue
+                debtEntity.outing = outingEntity
+                debtEntities.insert(debtEntity)
+                
+                // print("[OutingService] 💰 Debt Details - ID: \(debtDTO.id), From: \(debtDTO.fromUserId), To: \(debtDTO.toUserId), Amount: \(debtDTO.amount), Status: \(debtDTO.status.rawValue)")
+            }
+            
+            outingEntity.debts = NSSet(set: debtEntities)
+            print("[OutingService] Created \(debtEntities.count) DebtEntities and assigned to OutingEntity")
+        }
+        
         // Calculate total expense from activities
         outingEntity.totalExpense = outingDTO.activities?.reduce(0.0) { $0 + $1.amount } ?? 0.0
         outingEntity.createdAt = DateUtils.shared.parseISO8601Date(outingDTO.createdAt)
@@ -195,4 +294,5 @@ class OutingService {
         return outingEntity
     }
 }
+
 
