@@ -1,4 +1,5 @@
 import SwiftUI
+import ContactsUI
 
 struct CreateOutingDrawer: View {
     @Environment(\.dismiss) var dismiss
@@ -8,7 +9,9 @@ struct CreateOutingDrawer: View {
     @State private var title: String = ""
     @State private var description: String = ""
     @State private var showEventPicker = false
-    @State private var selectedEvents: Set<UUID> = []
+    @State private var selectedEventId: UUID? = nil 
+    @State private var showInviteMemberDrawer = false 
+    @State private var selectedContacts: [CNContact] = []
     
     var body: some View {
         VStack(spacing: 20) {
@@ -21,6 +24,7 @@ struct CreateOutingDrawer: View {
                 TextField("Enter outing title", text: $title)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
             }
+            
             
             // Description Input
             VStack(alignment: .leading, spacing: 8) {
@@ -37,9 +41,48 @@ struct CreateOutingDrawer: View {
                     )
             }
             
+            
+            // Selected Event
+            if let eventId = selectedEventId,
+               let event = eventCoreData.eventStore.first(where: { $0.id == eventId }) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Selected Event")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                    
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(event.title ?? "Unknown")
+                                .font(.headline)
+                            if let date = event.eventDate {
+                                Text(date, style: .date)
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
+                            Text(event.locationName ?? "Unknown location")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            selectedEventId = nil
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.red)
+                                .font(.title2)
+                        }
+                    }
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(12)
+                }
+            }
+            
             // Event Selection
             VStack(alignment: .leading, spacing: 8) {
-                Text("Events")
+                Text("Event")  // Changed to singular
                     .font(.subheadline)
                     .foregroundColor(.gray)
                 
@@ -48,26 +91,57 @@ struct CreateOutingDrawer: View {
                 }) {
                     HStack {
                         Image(systemName: "plus.circle.fill")
-                        Text("Add Event")
+                        Text(selectedEventId == nil ? "Select Event" : "Change Event")  // Updated text
                     }
                     .foregroundColor(.blue)
                 }
             }
             
-            // Selected Events List
-            if !selectedEvents.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(Array(selectedEvents), id: \.self) { eventId in
-                            if let event = eventCoreData.eventStore.first(where: { $0.id == eventId }) {
-                                EventChip(title: event.title ?? "Unknown", onRemove: {
-                                    selectedEvents.remove(eventId)
-                                })
+            // Members Section
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Members")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                
+                if selectedContacts.isEmpty {
+                    Button(action: {
+                        showInviteMemberDrawer = true
+                    }) {
+                        HStack {
+                            Image(systemName: "person.badge.plus")
+                            Text("Invite Members")
+                        }
+                        .foregroundColor(.blue)
+                    }
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(selectedContacts, id: \.identifier) { contact in
+                                HStack {
+                                    Text("\(contact.givenName) \(contact.familyName)")
+                                        .font(.caption)
+                                    Button(action: {
+                                        selectedContacts.removeAll { $0.identifier == contact.identifier }
+                                    }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(.gray)
+                                    }
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.gray.opacity(0.1))
+                                .cornerRadius(12)
+                            }
+                            
+                            Button(action: {
+                                showInviteMemberDrawer = true
+                            }) {
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundColor(.blue)
                             }
                         }
                     }
                 }
-                .padding(.vertical, 8)
             }
             
             Spacer()
@@ -88,15 +162,38 @@ struct CreateOutingDrawer: View {
         }
         .padding()
         .sheet(isPresented: $showEventPicker) {
-            EventPickerView(selectedEvents: $selectedEvents)
+            EventPickerView(selectedEvents: Binding(
+                get: { selectedEventId.map { Set([$0]) } ?? Set() },
+                set: { selectedEventId = $0.first }
+            ))
+        }
+        .sheet(isPresented: $showInviteMemberDrawer) {  // Add this
+            DrawerModal(isOpen: $showInviteMemberDrawer) {
+                InviteMemberDrawer { contacts in
+                    selectedContacts = contacts
+                }
+            }
         }
         .onAppear {
-            eventCoreData.fetchEvents()
+            eventCoreData.fetchEventsFromServer()
         }
     }
     
     private func createOuting() {
-        outingStore.createNewOuting(title: title, description: description)
+        let selectedEvent = selectedEventId.flatMap { eventId in
+            eventCoreData.eventStore.first { $0.id == eventId }
+        }
+        
+        let participants = OutingHelperService.shared.convertParticipantsToJSON(selectedContacts)
+        
+        outingStore.createNewOuting(
+            title: title,
+            description: description,
+            event: selectedEvent,
+            participants: participants
+        )
+        
+        dismiss()
     }
 }
 
@@ -121,43 +218,6 @@ struct EventChip: View {
     }
 }
 
-struct EventPickerView: View {
-    @Environment(\.dismiss) var dismiss
-    @StateObject private var eventCoreData = EventCoreDataModel()
-    @Binding var selectedEvents: Set<UUID>
-    
-    var body: some View {
-        NavigationView {
-            List(eventCoreData.eventStore, id: \.id) { event in
-                if let id = event.id {
-                    HStack {
-                        Text(event.title ?? "Unknown")
-                        Spacer()
-                        if selectedEvents.contains(id) {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(.blue)
-                        }
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        if selectedEvents.contains(id) {
-                            selectedEvents.remove(id)
-                        } else {
-                            selectedEvents.insert(id)
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Select Events")
-            .navigationBarItems(trailing: Button("Done") {
-                dismiss()
-            })
-        }
-        .onAppear {
-            eventCoreData.fetchEvents()
-        }
-    }
-}
 
 #Preview {
     CreateOutingDrawer()

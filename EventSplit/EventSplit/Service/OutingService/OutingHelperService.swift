@@ -12,7 +12,7 @@ class OutingHelperService {
             let email = contact.emailAddresses.first?.value as String? ?? ""
             
             return ParticipantDTO(
-                id: nil,
+                id: UUID().uuidString,
                 name: "\(contact.givenName) \(contact.familyName)".trimmingCharacters(in: .whitespaces),
                 email: email.isEmpty ? nil : email,
                 phoneNumber: phoneNumber
