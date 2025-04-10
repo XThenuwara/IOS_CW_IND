@@ -10,6 +10,7 @@ import { User } from '../user/entities/user.entity';
 import { Participant } from './dto/participant.dto';
 import { Event } from '../event/entities/event.entity';
 import { OutingEvent } from './entities/outing-event.entity';
+import { Debt } from './entities/debt.entity';
 
 @Injectable()
 export class OutingService {
@@ -25,6 +26,8 @@ export class OutingService {
     private eventRepository: Repository<Event>,
     @InjectRepository(OutingEvent)
     private outingEventRepository: Repository<OutingEvent>,
+    @InjectRepository(Debt)
+    private debtRepository: Repository<Debt>,
   ) {}
 
   async createOuting(createOutingDto: CreateOutingDto, userId: string): Promise<Outing> {
@@ -83,32 +86,111 @@ export class OutingService {
   }
 
 
-  async addActivity(outingId: string, createActivityDto: CreateActivityDto, userId: string): Promise<Activity> {
-    this.logger.log(`Adding activity to outing: ${outingId} by user: ${userId}`);
+  async addActivity(createActivityDto: CreateActivityDto, userId: string): Promise<Activity> {
+    const { outingId, participantIds } = createActivityDto;
+    this.logger.log(`Adding activity to outing: ${outingId.toLowerCase()} by user: ${userId}`);
     try {
       const outing = await this.outingRepository.findOne({
-        where: { id: outingId },
+        where: { id: outingId.toLowerCase() },
+        relations: ['owner', 'activities'],
       });
-  
+
       if (!outing) {
         throw new NotFoundException('Outing not found');
       }
-  
-      const paidBy = await this.userRepository.findOne({ where: { id: userId } });
-      if (!paidBy) {
-        throw new NotFoundException('User not found');
-      }
-  
       const activity = this.activityRepository.create({
         ...createActivityDto,
-        paidBy,
-        outing,
+        paidById: createActivityDto.paidById.toLowerCase(),
+        outing: outing,
+        participants: participantIds.map(id => id.toLowerCase()),
       });
-  
+
+      const savedActivity = await this.activityRepository.save(activity);
+      
+      await this.calculateDebts(outing, userId);
       this.logger.log(`Successfully added activity to outing: ${outingId}`);
-      return await this.activityRepository.save(activity);
+      return savedActivity;
     } catch (error) {
       this.logger.error(`Failed to add activity: ${error.message}`);
+      throw error;
+    }
+  }
+
+  private async calculateDebts(outing: Outing, userId: string): Promise<void> {
+    this.logger.log(`Calculating debts for outing: ${outing.id}`);
+    try {
+      const freshOuting = await this.outingRepository.findOne({
+        where: { id: outing.id.toLowerCase() },
+        relations: ['activities'],
+      });
+
+      if (!freshOuting) {
+        throw new NotFoundException('Outing not found');
+      }
+      
+      const participants = [
+        ...freshOuting.participants.map(participantStr => {
+          try {
+            const participant = JSON.parse(participantStr);
+            return participant.id.toLowerCase();
+          } catch (e) {
+            return null;
+          }
+        }).filter(id => id !== null),
+        userId.toLowerCase()
+      ];
+
+      const balances: { [key: string]: number } = {};
+      
+      // Calculate initial balances
+      for (const participantId of participants) {
+        const paidActivities = freshOuting.activities
+          .filter(a => a.paidById.toLowerCase() === participantId);
+        
+        const paidAmount = paidActivities
+          .reduce((sum, a) => sum + Number(a.amount), 0);
+          
+        const participatingActivities = freshOuting.activities
+          .filter(a => a.participants.includes(participantId));
+        
+        const owedAmount = participatingActivities
+          .reduce((sum, a) => sum + (Number(a.amount) / a.participants.length), 0);
+          
+        balances[participantId] = paidAmount - owedAmount;
+      }
+
+      // Delete existing debts
+      await this.debtRepository.delete({ outing: { id: outing.id } });
+      const debtors = Object.entries(balances).filter(([_, balance]) => balance < 0);
+      const creditors = Object.entries(balances).filter(([_, balance]) => balance > 0);
+
+      // Create debts
+      while (debtors.length > 0 && creditors.length > 0) {
+        const [debtorId, debtorBalance] = debtors[0];
+        const [creditorId, creditorBalance] = creditors[0];
+        
+        const amount = Math.min(Math.abs(debtorBalance), creditorBalance);
+        
+        const debt = this.debtRepository.create({
+          fromUserId: debtorId,
+          toUserId: creditorId,
+          amount: amount,
+          outing: outing,
+          status: 'pending'
+        });
+        await this.debtRepository.save(debt);
+
+        // Update balances
+        debtors[0][1] += amount;
+        creditors[0][1] -= amount;
+
+        if (debtors[0][1] === 0) debtors.shift();
+        if (creditors[0][1] === 0) creditors.shift();
+      }
+
+    } catch (error) {
+      this.logger.error(`Failed to calculate debts: ${error.message}`);
+      this.logger.error(error.stack);
       throw error;
     }
   }
@@ -118,7 +200,7 @@ export class OutingService {
     try {
       const outings = await this.outingRepository.find({
         where: [{ owner: { id: userId } }],
-        relations: ['owner', 'activities', 'outingEvents'],
+        relations: ['owner', 'activities', 'outingEvents', 'outingEvents.event', 'debts'],
       });
       this.logger.log(`Found ${outings.length} outings for user: ${userId}`);
       return outings;
@@ -196,7 +278,7 @@ export class OutingService {
     this.logger.log(`Calculating balance for outing: ${outingId}`);
     try {
       const outing = await this.outingRepository.findOne({
-        where: { id: outingId },
+        where: { id:outingId },
         relations: ['activities'],
       });
   

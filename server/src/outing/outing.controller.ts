@@ -30,18 +30,12 @@ export class OutingController {
   }
 
   @Roles(UserRole.ADMIN, UserRole.USER)
-  @Post(':id/activity')
+  @Post('/activity')
   @HttpCode(HttpStatus.CREATED)
-  async addActivity(
-    @Param('id') outingId: string,
-    @Body() createActivityDto: CreateActivityDto,
+  async addActivity( @Body() createActivityDto: CreateActivityDto,
     @Request() req,
   ) {
-    return await this.outingService.addActivity(
-      outingId,
-      createActivityDto,
-      req.user.id,
-    );
+    return await this.outingService.addActivity(createActivityDto, req.user.id);
   }
 
   @Roles(UserRole.ADMIN, UserRole.USER)
@@ -49,7 +43,7 @@ export class OutingController {
   @HttpCode(HttpStatus.OK)
   async addParticipant(
     @Param('id') outingId: string,
-    @Body() participant: Participant
+    @Body() participant: Participant,
   ) {
     return await this.outingService.addParticipant(outingId, participant);
   }
@@ -59,7 +53,7 @@ export class OutingController {
   @HttpCode(HttpStatus.OK)
   async findAll(@Request() req) {
     return await this.outingService.findAll(req.user.id);
-  }
+  }   
 
   @Roles(UserRole.ADMIN, UserRole.USER)
   @Get(':id')
@@ -84,7 +78,7 @@ export class OutingController {
   ) {
     return await this.outingService.update(id, updateOutingDto);
   }
-  
+
   @Roles(UserRole.ADMIN, UserRole.USER)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)

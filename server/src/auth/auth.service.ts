@@ -77,9 +77,7 @@ export class AuthService {
 
     this.logger.log(`User successfully logged in: ${user.id}`);
     const payload = { id: user.id, email: user.email, role: user.role };
-    const token = await this.jwtService.signAsync(payload, {
-      expiresIn: '7d'
-    });
+    const token = await this.jwtService.signAsync(payload);
 
     return {
       accessToken: token,
@@ -88,6 +86,7 @@ export class AuthService {
         email: user.email,
         name: user.name,
         role: user.role,
+        phoneNumber: user.phoneNumber,
       },
     };
   }
