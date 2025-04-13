@@ -8,35 +8,70 @@
 import SwiftUI
 import CoreData
 
-struct ContentView: View {   
+struct ContentView: View {
     @State private var selectedTab = 0
+    @ObservedObject private var authModel = AuthCoreDataModel.shared
+    @State private var showLogin = false
+    @State private var navigationPath = NavigationPath()
     
     var body: some View {
-        ZStack(alignment: .top) {
-            VStack(spacing: 0) {
-                ScrollView {
-                    VStack {
-                        Navbar(selectedTab: $selectedTab)
-                            .padding(.bottom, 10)
-                        
-                        switch selectedTab {
-                        case 0:
-                            BrowseView()
-                        case 1:
-                            Text("Events View")
-                        case 2:
-                            Text("History View")
-                        case 3:
-                            Text("Groups View")
-                        case 4:
-                            Text("More View")
-                        default:
-                            EmptyView()
+        Group {
+            if authModel.isAuthenticated {
+                NavigationStack(path: $navigationPath) {
+                    ZStack(alignment: .top) {
+                        Color.primaryBackground
+                            .ignoresSafeArea()
+                        VStack(spacing: 0) {
+                            Navbar(selectedTab: $selectedTab)
+                                .padding(.bottom, 10)
+                            
+                            switch selectedTab {
+                            case 0:
+                                BrowseView()
+                            case 1:
+                                BrowseView()
+                            case 2:
+                                OutingListView()
+                            case 3:
+                                GroupView()
+                            case 4:
+                                Text("More View")
+                            default:
+                                EmptyView()
+                            }
+                            
+                            Tabbar(selectedTab: $selectedTab)
                         }
                     }
+                    .navigationDestination(for: OutingEntity.self) { outing in
+                        OutingView(outing: outing)
+                    }
+                }
+            } else {
+                Login()
+            }
+        }
+        .onAppear {
+            NotificationCenter.default.addObserver(
+                forName: Notification.Name("NotificationTapped"),
+                object: nil,
+                queue: .main
+            ) { notification in
+                guard let type = notification.userInfo?["type"] as? String,
+                      let referenceId = notification.userInfo?["referenceId"] as? String else {
+                    print("ContentView.onAppear: Missing notification data")
+                    return
                 }
                 
-                Tabbar(selectedTab: $selectedTab)
+                if let navigation = NotificationHandlerService.shared.handleNotificationTap(type: type, referenceId: referenceId) {
+                    switch navigation {
+                    case .outing(let id):
+                        NotificationNavigationCoordinator.shared.navigateToOuting(id: id, navigationPath: $navigationPath)
+                    case .activity, .settleUp, .group:
+                        print("ContentView.onAppear: Navigation type not implemented")
+                        break
+                    }
+                }
             }
         }
         .background(Color.primaryBackground)
