@@ -1,4 +1,9 @@
-// Fix duplicate import
+//
+//  OutingView.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-03-25.
+//
 import SwiftUI
 
 struct OutingView: View {
@@ -10,16 +15,6 @@ struct OutingView: View {
     init(outing: OutingEntity) {
         print("[OutingView] Outing ID:", outing)
         self.outing = outing
-        if let debts = outing.debts {
-            print("[OutingView] Debts count:", debts.count)
-            for debt in debts {
-                if let debtEntity = debt as? DebtEntity {
-                    print("[OutingView] Debt - From: \(debtEntity.fromUserId), To: \(debtEntity.toUserId), Amount: \(debtEntity.amount)")
-                }
-            }
-        } else {
-            print("[OutingView] No debts found")
-        }
     }
 
     var body: some View {
@@ -27,9 +22,14 @@ struct OutingView: View {
             VStack(spacing: 20) {
                 // Header
                 HStack {
-                    Text("Group Outing")
-                        .font(.title)
-                        .fontWeight(.bold)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("\(outing.title ?? "Outing")")
+                    .font(.system(size: 28, weight: .bold))
+                Text("Discover events happening in your area")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+            }
+            
                     
                     Spacer()
                     
@@ -49,11 +49,17 @@ struct OutingView: View {
                 }
                 .padding()
                 
-                // Event Card
+                // Calendar Check
                 if let eventData = outing.outingEvent?.event {
                     OutingEventCard(eventData: eventData)
                 }
                 
+                // Calendar Check
+                OutingCalendarCheck(
+                    title: outing.title ?? "",
+                    description: outing.desc ?? "",
+                    startDate: outing.outingEvent?.event?.eventDate
+                )
 
                 // Expenses Section
                 OutingExpensesSection(
@@ -79,6 +85,9 @@ struct OutingView: View {
                     activities: getActivities()
                 )
             }
+            .padding(.bottom, 100)
+
+            Spacer()
         }
         .sheet(isPresented: $showAddExpense) {
             AddExpenseDrawer(outing: outing)

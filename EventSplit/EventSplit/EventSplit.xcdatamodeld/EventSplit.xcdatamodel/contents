@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="24D70" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="24D70" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="ActivityEntity" representedClassName="ActivityEntity" syncable="YES" codeGenerationType="class">
         <attribute name="amount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -18,6 +18,14 @@
         <attribute name="accessToken" optional="YES" attributeType="String"/>
         <attribute name="user" optional="YES" attributeType="String"/>
         <relationship name="userEntity" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="AuthEntity" inverseName="userEntity" inverseEntity="AuthEntity"/>
+    </entity>
+    <entity name="DebtEntity" representedClassName=".DebtEntity" syncable="YES">
+        <attribute name="amount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="fromUserId" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="status" optional="YES" attributeType="String"/>
+        <attribute name="toUserId" optional="YES" attributeType="String"/>
+        <relationship name="outing" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OutingEntity" inverseName="debts" inverseEntity="OutingEntity"/>
     </entity>
     <entity name="EventEntity" representedClassName=".EventEntity" syncable="YES">
         <attribute name="amenities" optional="YES" attributeType="String"/>
@@ -41,6 +49,15 @@
         <attribute name="weatherCondition" optional="YES" attributeType="String"/>
         <relationship name="outingEvent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OutingEventEntity" inverseName="event" inverseEntity="OutingEventEntity"/>
     </entity>
+    <entity name="NotificationEntity" representedClassName=".NotificationEntity" syncable="YES">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="message" optional="YES" attributeType="String"/>
+        <attribute name="read_at" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="reference_id" optional="YES" attributeType="String"/>
+        <attribute name="send_at" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+    </entity>
     <entity name="OutingEntity" representedClassName=".OutingEntity" syncable="YES">
         <attribute name="activities" optional="YES" attributeType="String"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -54,6 +71,7 @@
         <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="totalExpense" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="debts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="DebtEntity" inverseName="outing" inverseEntity="DebtEntity"/>
         <relationship name="outingActivity" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ActivityEntity" inverseName="outingActivity" inverseEntity="ActivityEntity"/>
         <relationship name="outingEvent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OutingEventEntity" inverseName="outing" inverseEntity="OutingEventEntity"/>
     </entity>

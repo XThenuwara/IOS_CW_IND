@@ -2,15 +2,17 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSContactsUsageDescription</key>
-	<string>EventSplit needs access to contacts to help you invite friends</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>We need your location to show you nearby events and calculate distances.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We need your location to show you nearby events and calculate distances.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict/>
+	</array>
+	<key>Privacy - Notification Usage Description</key>
+	<string>EventSplit needs to send you notifications about your events and outings</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>fetch</string>
+		<string>processing</string>
 	</array>
 </dict>
 </plist>
