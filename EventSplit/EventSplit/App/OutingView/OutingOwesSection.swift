@@ -1,10 +1,16 @@
+//
+//  OutingOwesSection.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-04-13.
+//
 import SwiftUI
 
 struct OutingOwesSection: View {
     let users: [UserDTO]
     let participants: [ParticipantDTO]
     let debts: [DebtEntity]
-    let totalBudget: Double
+    let yourShare: Double
     
     var body: some View {
         VStack(spacing: 16) {
@@ -30,13 +36,16 @@ struct OutingOwesSection: View {
             VStack(spacing: 12) {
                 Button(action: {}) {
                     HStack {
-                        Image(systemName: "dollarsign")
-                        Text("Settle Up All Debts ($\(String(format: "%.2f", totalBudget)))")
+                        Image(systemName: yourShare < 0 ? "bell" : "dollarsign")
+                        Text(yourShare < 0 
+                            ? "Remind All ($\(String(format: "%.2f", abs(yourShare))))"
+                            : "Settle Up ($\(String(format: "%.2f", yourShare)))"
+                        )
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
+                    .background(yourShare < 0 ? .secondaryBackground : .primaryBackground)
+                    .foregroundColor(yourShare < 0 ? .primaryBackground : .secondaryBackground)
                     .cornerRadius(12)
                 }
                 
@@ -53,10 +62,8 @@ struct OutingOwesSection: View {
         .padding()
         .background(Color(.systemBackground))
         .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color(.systemGray5), lineWidth: 1)
-        )
+        .withShadow()
+        .withBorder()
         .padding(.horizontal)
     }
 }

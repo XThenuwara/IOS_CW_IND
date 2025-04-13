@@ -1,7 +1,16 @@
+//
+//  EventPickerDrawer.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-03-31.
+//
 import SwiftUI
 
-struct BrowseView: View {
-    @StateObject private var eventModel = EventCoreDataModel()
+struct EventPickerView: View {
+    @Environment(\.dismiss) var dismiss
+    @StateObject private var eventCoreData = EventCoreDataModel()
+    @Binding var selectedEvents: Set<UUID>
+    @State private var selectedEventId: UUID? = nil
     @State private var searchText = ""
     @State private var selectedLocation: String?
     @State private var showFilterSheet = false
@@ -11,7 +20,7 @@ struct BrowseView: View {
     
     private func updateFilteredEvents() {
         let distance = Int(selectedLocation ?? "20") ?? 20
-        eventModel.fetchFilteredEvents(
+        eventCoreData.fetchFilteredEvents(
             distance: distance,
             type: selectedType,
             startDate: startDate,
@@ -37,17 +46,8 @@ struct BrowseView: View {
     }
     
     var body: some View {
+        NavigationView {
             VStack(alignment: .leading, spacing: 15) {
-                // Header
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Events Near You")
-                        .font(.system(size: 28, weight: .bold))
-                    Text("Discover events happening in your area")
-                        .font(.system(size: 14))
-                        .foregroundColor(.gray)
-                }
-                .padding(.horizontal)
-                
                 // Search and Filter Bar
                 VStack(spacing: 8) {
                     HStack(spacing: 8) {
@@ -103,7 +103,21 @@ struct BrowseView: View {
                                 updateFilteredEvents()
                             }
                             
-                            Spacer().frame(width: 16) // Optional spacer for better scrolling
+                            Button(action: {
+                                selectedType = nil
+                                selectedLocation = nil
+                                startDate = nil
+                                endDate = nil
+                                eventCoreData.fetchEventsFromServer()
+                            }) {
+                                Image(systemName: "arrow.uturn.backward.circle")
+                                    .foregroundColor(.gray)
+                                    .frame(width: 40, height: 40)
+                                    .background(Color.white)
+                                    .cornerRadius(23)
+                                    .shadow(color: Color.black.opacity(0.05), radius: 2)
+                            }
+                            Spacer().frame(width: 16)
                         }
                         .padding(.horizontal, 4)
                     }
@@ -114,44 +128,51 @@ struct BrowseView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         Text(getFilterText())
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.gray)
-                                .padding(.horizontal)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.gray)
+                            .padding(.horizontal)
                         
                         LazyVStack(spacing: 16) {
-                            ForEach(eventModel.eventStore, id: \.id) { event in
-                                EventCard(event: event)
+                            ForEach(eventCoreData.eventStore, id: \.id) { event in
+                                if let id = event.id {
+                                    SelectableEventCard(
+                                        event: event,
+                                        isSelected: selectedEventId == id,  
+                                        onSelect: {
+                                            if selectedEventId == id {
+                                                selectedEventId = nil 
+                                            } else {
+                                                selectedEventId = id  
+                                            }
+                                        }
+                                    )
                                     .padding(.horizontal)
+                                }
                             }
                         }
                     }
                     .padding(.vertical)
                 }
             }
-                    .onAppear {
-            eventModel.fetchFilteredEvents()
-            eventModel.fetchEventsFromServer()
-        }
-        .onChange(of: eventModel.eventStore) { newValue in
-        }
-            .background(.primaryBackground)
-            .navigationBarHidden(true)
-            .sheet(isPresented: $showFilterSheet) {
-                NavigationView {
-                    List {
-                        // TODO:  Filter options here
-                    }
-                    .navigationTitle("Filter Events")
-                    .navigationBarItems(trailing: Button("Done") {
-                        showFilterSheet = false
-                    })
+            .navigationTitle("Select Events")
+            .navigationBarItems(
+                leading: Button("Cancel") {
+                    dismiss()
+                },
+                trailing: Button("Done") {
+                    selectedEvents = selectedEventId != nil ? [selectedEventId!] : [] 
+                    dismiss()
                 }
-            }
+            )
         }
+        .onAppear {
+            selectedEventId = selectedEvents.first 
+            eventCoreData.fetchEventsFromServer()
+        }
+        .background(.primaryBackground)
+    }
 }
 
 #Preview {
-    BrowseView()
-        .background(.secondaryBackground)
+    EventPickerView(selectedEvents: .constant(Set<UUID>()))
 }
-

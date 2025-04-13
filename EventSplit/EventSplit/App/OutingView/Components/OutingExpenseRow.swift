@@ -1,3 +1,9 @@
+//
+//  OutingExpenseRow.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-03-29.
+//
 import SwiftUI
 
 struct OutingExpenseRow: View {
@@ -14,10 +20,10 @@ struct OutingExpenseRow: View {
             // Avatar circle
             ZStack {
                 Circle()
-                    .fill(Color(.systemGray6))
+                    .fill(Color(.primaryBackground))
                 Image(systemName: "receipt")
                     .font(.system(size: 16))
-                    .foregroundColor(.secondary)
+                   .foregroundColor(.secondary)
             }
             .frame(width: 32, height: 32)
             
@@ -37,7 +43,7 @@ struct OutingExpenseRow: View {
                         ForEach(activity.participants, id: \.self) { participant in
                             let user = users.first { $0.id.uuidString.lowercased() == participant.lowercased() }
                             Circle()
-                                .fill(Color(.systemGray5))
+                                .fill(Color(.primaryBackground))
                                 .frame(width: 16, height: 16)
                                 .overlay(
                                     Text(String(user?.name.prefix(1) ?? participant.prefix(1)))

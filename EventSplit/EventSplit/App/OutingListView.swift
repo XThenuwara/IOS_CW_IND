@@ -1,3 +1,9 @@
+//
+//  OutingListView.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-04-13.
+//
 import SwiftUI
 
 struct OutingListView: View {
@@ -11,31 +17,37 @@ struct OutingListView: View {
             VStack(spacing: 16) {
                 // Header
                 HStack {
-                    Text("Your Outings")
-                        .font(.title2)
-                        .fontWeight(.semibold)
+                                VStack(alignment: .leading, spacing: 8) {
+                Text("Your Outings")
+                    .font(.system(size: 28, weight: .bold))
+                Text("Manage and track your upcoming outings")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+            }
+            
                     
                     Spacer()
                     
-                    Button(action: {
-                        outingCoreData.fetchOutings()
-                    }) {
-                        Image(systemName: "arrow.clockwise")
-                            .foregroundColor(.gray)
-                    }
-                    .padding(.trailing, 8)
+                    // Button(action: {
+                    //     outingCoreData.fetchOutings()
+                    // }) {
+                    //     Image(systemName: "arrow.clockwise")
+                    //         .foregroundColor(.gray)
+                    // }
+                    // .padding(.trailing, 8)
                     
                     Button(action: {
                         showNewOutingSheet.toggle()
                     }) {
                         HStack {
                             Image(systemName: "plus")
-                            Text("New Outing")
+                            Text("New")
+                                .fontWeight(.bold)
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
-                        .background(.primaryBackground)
-                        .foregroundColor(.secondaryBackground)
+                        .background(.secondaryBackground)
+                        .foregroundColor(.primaryBackground)
                         .cornerRadius(20)
                     }
                 }
@@ -53,7 +65,10 @@ struct OutingListView: View {
                         }
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .background(.primaryBackground)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .sheet(isPresented: $showNewOutingSheet) {
                 DrawerModal(isOpen: $showNewOutingSheet) {
                     CreateOutingDrawer()

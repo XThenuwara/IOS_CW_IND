@@ -88,6 +88,8 @@ struct AddExpenseReceiptScanner: View {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.gray.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [5]))
                     .frame(height: 150)
+                    .background(.primaryBackground)
+                    .cornerRadius(12)
                 
                 if isProcessing {
                     VStack {
@@ -121,18 +123,23 @@ struct AddExpenseReceiptScanner: View {
                             Button(action: { isCameraPresented = true }) {
                                 HStack {
                                     Image(systemName: "camera")
+                                        .foregroundColor(.secondaryBackground)
                                     Text("Camera")
+                                        .foregroundColor(.secondaryBackground)
                                 }
                             }
                             
                             Button(action: { isImagePickerPresented = true }) {
                                 HStack {
                                     Image(systemName: "square.and.arrow.up")
+                                        .foregroundColor(.secondaryBackground)
                                     Text("Upload")
+                                        .foregroundColor(.secondaryBackground)
                                 }
                             }
                         }
                     }
+                    
                 }
             }
             

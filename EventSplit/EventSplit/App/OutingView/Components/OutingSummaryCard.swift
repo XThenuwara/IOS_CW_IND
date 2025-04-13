@@ -1,3 +1,9 @@
+//
+//  OutingSummaryCard.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-03-29.
+//
 import SwiftUI
 
 struct OutingSummaryCard: View {
@@ -22,17 +28,15 @@ struct OutingSummaryCard: View {
                     Text("Your Share")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-                    Text("$\(String(format: "%.2f", yourShare))")
+                    Text("$\(String(format: "%.2f", abs(yourShare)))")
                         .font(.title3)
                         .fontWeight(.semibold)
-                        .foregroundColor(.red)
+                        .foregroundColor(yourShare < 0 ? .green : .red)
                 }
             }
             .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
         }
-        .background(Color(.systemBackground))
+        .background(.primaryBackground)
         .cornerRadius(10)
     }
 }

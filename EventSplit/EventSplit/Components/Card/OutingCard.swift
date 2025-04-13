@@ -69,7 +69,7 @@ struct OutingCard: View {
                     
                     Spacer()
                     
-                    StatusBadge(status: status)
+                    StatusBadge(text: status.rawValue)
                 }
                 
                 // Location and Details

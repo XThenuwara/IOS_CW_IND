@@ -1,3 +1,9 @@
+//
+//  ParticipantDebtList.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-04-03.
+//
 import SwiftUI
 
 struct ParticipantDebtList: View {
@@ -72,45 +78,44 @@ struct DebtRow: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                
-                Spacer()
-                
-                // Amount
-                Text("$\(String(format: "%.2f", debt.amount))")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.red)
+            
             }
             
             // Buttons Row
             HStack(spacing: 8) {
+                                Text("$\(String(format: "%.2f", debt.amount))")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.red)
                 Spacer()
                 Button(action: {}) {
                     Text("Mark as Paid")
                         .font(.caption)
+                        .fontWeight(.medium)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
-                        .background(Color(.systemGray6))
-                        .foregroundColor(.primary)
-                        .cornerRadius(16)
+                        .background(Color.white)
+                        .foregroundColor(.secondaryBackground)
+                        .cornerRadius(100)
                 }
                 
                 Button(action: {}) {
                     HStack(spacing: 4) {
                         Image(systemName: "dollarsign")
                         Text("Pay Now")
+                            .fontWeight(.bold)
                     }
                     .font(.caption)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
+                    .background(.secondaryBackground)
+                    .foregroundColor(.primaryBackground)
                     .cornerRadius(16)
                 }
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(.primaryBackground)
         .cornerRadius(12)
     }
 }

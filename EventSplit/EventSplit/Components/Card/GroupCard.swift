@@ -1,3 +1,9 @@
+//
+//  GroupCard.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-04-02.
+//
 import SwiftUI
 
 struct GroupCard: View {

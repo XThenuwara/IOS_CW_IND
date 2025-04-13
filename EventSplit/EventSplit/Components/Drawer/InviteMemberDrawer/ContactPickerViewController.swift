@@ -1,10 +1,14 @@
+//
+//  ContactPickerViewController.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-04-12.
+//
 import SwiftUI
 import ContactsUI
 import MessageUI
-// Add to Info.plist:
-// NSContactsUsageDescription: "EventSplit needs access to contacts to help you invite friends"
 
-// Add after the ContactRow struct
+
 struct ContactPickerViewController: UIViewControllerRepresentable {
     @Binding var selectedContact: CNContact?
     
@@ -20,7 +24,7 @@ struct ContactPickerViewController: UIViewControllerRepresentable {
         Coordinator(self)
     }
     
-    // Update the ContactPickerViewController Coordinator
+
     class Coordinator: NSObject, CNContactPickerDelegate {
         let parent: ContactPickerViewController
         

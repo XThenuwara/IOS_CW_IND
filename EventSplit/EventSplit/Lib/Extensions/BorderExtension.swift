@@ -10,8 +10,8 @@ import SwiftUI
 extension View {
     func withBorder() -> some View {
         self.overlay(
-            RoundedRectangle(cornerRadius: 100)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
         )
     }
     
