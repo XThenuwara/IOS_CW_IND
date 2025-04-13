@@ -12,6 +12,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
 import { GroupModule } from './group/group.module';
+import { NotificationModule } from './notification/notification.module';
 
 
 @Module({
@@ -35,6 +36,7 @@ import { GroupModule } from './group/group.module';
     UserModule,
     AuthModule,
     GroupModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [
