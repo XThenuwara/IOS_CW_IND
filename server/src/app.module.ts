@@ -12,6 +12,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
 import { GroupModule } from './group/group.module';
+import { LLMService } from './llm.service';
 import { NotificationModule } from './notification/notification.module';
 
 
@@ -45,6 +46,7 @@ import { NotificationModule } from './notification/notification.module';
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
+    LLMService,
   ],
 })
 export class AppModule {}
