@@ -38,7 +38,7 @@ struct InputField: View {
                 }
             }
             .padding()
-            .background(Color(.systemGray6))
+            .background(.primaryBackground)
             .cornerRadius(8)
         }
     }

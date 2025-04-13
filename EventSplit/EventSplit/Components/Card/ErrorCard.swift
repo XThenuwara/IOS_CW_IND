@@ -1,3 +1,9 @@
+//
+//  ErrorCard.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-03-22.
+//
 import SwiftUI
 
 struct ErrorCard: View {
@@ -9,40 +15,43 @@ struct ErrorCard: View {
         ZStack {
             if isVisible {
                 VStack(spacing: 16) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 40))
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .font(.system(size: 32))
                         .foregroundColor(.red)
+                        .padding(.top)
                     
                     Text(message)
-                        .font(.body)
+                        .font(.system(size: 15))
                         .multilineTextAlignment(.center)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal)
+                    
+                    Divider()
                     
                     Button(action: {
-                        withAnimation(.easeInOut(duration: 0.3)) {
+                        withAnimation {
                             onDismiss()
                         }
                     }) {
-                        Text("Dismiss")
+                        Text("OK")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(.blue)
                             .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
+                            .padding(.vertical, 12)
                     }
                 }
-                .padding()
-                .background(Color(.systemBackground))
-                .cornerRadius(12)
-                .shadow(radius: 5)
-                .padding()
-                .transition(.asymmetric(
-                    insertion: .move(edge: .top).combined(with: .opacity),
-                    removal: .move(edge: .top).combined(with: .opacity)
-                ))
+                .background(Color(UIColor.secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color.red.opacity(0.2), lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+                .padding(.horizontal, 40)
+                .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: isVisible)
+        .animation(.spring(), value: isVisible)
     }
 }
 

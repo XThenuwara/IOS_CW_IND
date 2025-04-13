@@ -1,3 +1,9 @@
+//
+//  InviteMemberDrawer.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-04-02.
+//
 import SwiftUI
 import ContactsUI
 import MessageUI
@@ -33,13 +39,14 @@ struct InviteMemberDrawer: View {
             VStack(spacing: 16) {
                 Button(action: { showContactPicker = true }) {
                     HStack {
-                        Image(systemName: "person.crop.circle.badge.plus")
+                        Image(systemName: "person.badge.plus")
                         Text("Select from Contacts")
+                            .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
+                    .background(.secondaryBackground)
+                    .foregroundColor(.primaryBackground)
                     .cornerRadius(12)
                 }
                 
@@ -48,13 +55,14 @@ struct InviteMemberDrawer: View {
                     dismiss()
                 }) {
                     HStack {
-                        Image(systemName: "checkmark.circle.fill")
+                        Image(systemName: "checkmark")
                         Text("Done")
+                              .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.green)
-                    .foregroundColor(.white)
+                    .background(.primaryBackground)
+                    .foregroundColor(.secondaryBackground)
                     .cornerRadius(12)
                 }
             }

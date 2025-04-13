@@ -1,8 +1,15 @@
+//
+//  OutingEventCard.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-03-29.
+//
 import SwiftUI
 
 struct OutingEventCard: View {
+    let outingEntity: OutingEntity
     let eventData: EventEntity
-    
+
     var body: some View {
         VStack(spacing: 16) {
             HStack {
@@ -12,13 +19,11 @@ struct OutingEventCard: View {
                 
                 Spacer()
                 
-                Text("Confirmed")
-                    .font(.caption)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.yellow.opacity(0.2))
-                    .foregroundColor(.yellow)
-                    .clipShape(Capsule())
+                let tickets = Int(outingEntity.outingEvent?.tickets ?? "0") ?? 0
+                StatusBadge(
+                    text: tickets > 0 ? "Confirmed" : "Not Confirmed",
+                    statusColor: tickets > 0 ? .green : .gray
+                )
             }
             
             VStack(spacing: 12) {
@@ -31,10 +36,9 @@ struct OutingEventCard: View {
                     Spacer()
                     Button(action: {}) {
                         HStack(spacing: 4) {
-                            Image(systemName: "eye")
-                                .font(.system(size: 14))
-                            Text("View Tickets")
+                            Text("View")
                                 .font(.subheadline)
+                                .fontWeight(.bold)
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
@@ -48,10 +52,8 @@ struct OutingEventCard: View {
         .padding()
         .background(Color(UIColor.systemBackground))
         .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.gray.opacity(0.2))
-        )
+        .withShadow()
+        .withBorder()
         .padding(.horizontal)
     }
     

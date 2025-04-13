@@ -1,3 +1,9 @@
+//
+//  ParticipantsSection.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-04-13.
+//
 import SwiftUI
 
 struct ParticipantsSection: View {
@@ -11,8 +17,7 @@ struct ParticipantsSection: View {
                 .filter { $0.paidById == user.id.uuidString }
                 .reduce(0.0) { $0 + (Double($1.amount) ?? 0.0) }
             
-            // Default to "Confirmed" for now, you can add actual status logic later
-            let status = "Confirmed"
+            let status = "Pending"
             
             return (user: user, amount: paidAmount, status: status)
         }
@@ -29,7 +34,7 @@ struct ParticipantsSection: View {
                 HStack(spacing: -8) {
                     ForEach(users.prefix(3), id: \.id) { user in
                         Circle()
-                            .fill(Color(.systemGray5))
+                            .fill(.primaryBackground)
                             .frame(width: 24, height: 24)
                             .overlay(
                                 Text(user.name.prefix(1))
@@ -39,7 +44,7 @@ struct ParticipantsSection: View {
                     }
                     if users.count > 3 {
                         Circle()
-                            .fill(Color(.systemGray5))
+                            .fill(.primaryBackground)
                             .frame(width: 24, height: 24)
                             .overlay(
                                 Text("+\(users.count - 3)")
@@ -58,6 +63,11 @@ struct ParticipantsSection: View {
                         Text("Invite")
                             .font(.subheadline)
                     }
+                    .padding(.all, 4)
+                    .padding(.horizontal, 8)
+                    .cornerRadius(100)
+                    .background(.primaryBackground)
+                    .foregroundColor(.secondaryBackground)
                 }
             }
             
@@ -68,7 +78,7 @@ struct ParticipantsSection: View {
                         // Avatar and Info
                         HStack(spacing: 12) {
                             Circle()
-                                .fill(Color(.systemGray5))
+                                .fill(.primaryBackground)
                                 .frame(width: 32, height: 32)
                                 .overlay(
                                     Text(participant.user.name.prefix(1))
@@ -97,14 +107,23 @@ struct ParticipantsSection: View {
                 }
             }
             .padding()
-            .background(Color(.systemGray6))
             .cornerRadius(12)
         }
+
         .padding()
+        .withBorder()
+        .background(Color.white)
         .sheet(isPresented: $showInvite) {
-            // TODO: Implement invite sheet
-            Text("Invite Participants")
+            DrawerModal(isOpen: $showInvite) {
+                InviteMemberDrawer { contacts in
+                    print("Selected \(contacts.count) contacts")
+                }
+            }
         }
+        .cornerRadius(12)
+        .padding(.horizontal)
+        .withShadow()
+
     }
 }
 

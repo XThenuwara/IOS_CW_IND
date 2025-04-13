@@ -1,3 +1,9 @@
+//
+//  CreateOutingDrawer.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-03-29.
+//
 import SwiftUI
 import ContactsUI
 
@@ -192,8 +198,17 @@ struct CreateOutingDrawer: View {
             event: selectedEvent,
             participants: participants
         )
-        
-        dismiss()
+
+        CalendarService.shared.addEventToCalendar(
+            title: title,
+            description: description,
+            startDate: selectedEvent?.eventDate
+        ) { success in
+            if !success {
+                print("❌ Failed to add event to calendar")
+            }
+            dismiss()
+        }
     }
 }
 

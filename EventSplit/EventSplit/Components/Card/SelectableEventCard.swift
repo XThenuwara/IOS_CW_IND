@@ -1,3 +1,9 @@
+//
+//  SelectableEventCard.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-03-28.
+//
 import SwiftUI
 
 struct SelectableEventCard: View {
@@ -94,6 +100,5 @@ struct SelectableEventCard: View {
                 .stroke(isSelected ? Color.blue : Color.gray.opacity(0.1), lineWidth: isSelected ? 2 : 1)
         )
         .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-        // Removed the .onTapGesture here
     }
 }

@@ -6,43 +6,60 @@
 //
 import SwiftUI
 
+enum StatusColor {
+    case blue
+    case green
+    case yellow
+    case red
+    case gray
+    
+    var color: Color {
+        switch self {
+        case .blue: return .blue
+        case .green: return .green
+        case .yellow: return .yellow
+        case .red: return .red
+        case .gray: return .gray
+        }
+    }
+    
+    static func fromText(_ text: String) -> StatusColor {
+        let lowercased = text.lowercased()
+        
+        switch lowercased {
+        case "draft", "pending", "inactive", "disabled":
+            return .gray
+        case "active", "completed", "success", "approved", "settled":
+            return .green
+        case "warning", "in progress", "processing", "waiting":
+            return .yellow
+        case "error", "failed", "rejected", "cancelled", "blocked":
+            return .red
+        default:
+            return .blue
+        }
+    }
+}
+
 struct StatusBadge: View {
-    let status: OutingStatus
+    let text: String
+    let statusColor: StatusColor
     
-    var backgroundColor: Color {
-        switch status {
-        case .draft: return Color.gray.opacity(0.2)
-        case .inProgress: return Color.yellow.opacity(0.2)
-        case .unsettled: return Color.orange.opacity(0.2)
-        case .settled: return Color.green.opacity(0.2)
-        }
-    }
-    
-    var textColor: Color {
-        switch status {
-        case .draft: return .gray
-        case .inProgress: return .yellow
-        case .unsettled: return .orange
-        case .settled: return .green
-        }
-    }
-    
-    var displayText: String {
-        switch status {
-        case .draft : return "Draft"
-        case .inProgress: return "In Progress"
-        case .unsettled: return "Unsettled"
-        case .settled: return "Settled"
-        }
+    init(text: String, statusColor: StatusColor? = nil) {
+        self.text = text
+        self.statusColor = statusColor ?? StatusColor.fromText(text)
     }
     
     var body: some View {
-        Text(displayText)
-            .font(.system(size: 12, weight: .medium))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(backgroundColor)
-            .foregroundColor(textColor)
-            .cornerRadius(12)
+        HStack(spacing: 6) {
+            Circle()
+                .fill(statusColor.color)
+                .frame(width: 8, height: 8)
+            Text(text)
+                .font(.system(size: 14))
+                .foregroundColor(.gray)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
     }
 }

@@ -1,3 +1,9 @@
+//
+//  GroupView.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-03-29.
+//
 import SwiftUI
 
 struct GroupView: View {
@@ -6,19 +12,30 @@ struct GroupView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("Groups")
-                    .font(.title2)
-                    .fontWeight(.bold)
+                HStack {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Your Groups")
+                            .font(.system(size: 28, weight: .bold))
+                        Text("Create groups to organize your events")
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray)
+                    }
+                }
+                
                 
                 Spacer()
                 
                 Button(action: { showCreateGroup = true }) {
-                    Text("Create Group")
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color(.systemBackground))
-                        .foregroundColor(.blue)
-                        .cornerRadius(20)
+                    HStack {
+                        Image(systemName: "plus")
+                        Text("New")
+                            .fontWeight(.bold)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(.secondaryBackground)
+                    .foregroundColor(.primaryBackground)
+                    .cornerRadius(20)
                 }
             }
             .padding(.horizontal)

@@ -19,7 +19,7 @@ struct OutingCalendarCheck: View {
                     HStack {
                         Image(systemName: "calendar.badge.plus")
                             .font(.title2)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.secondaryBackground)
                         
                         Text("Add to Calendar")
                             .font(.headline)
@@ -32,14 +32,17 @@ struct OutingCalendarCheck: View {
                         .foregroundColor(.gray)
                     
                     HStack(spacing: 12) {
+                        Spacer()
                         Button(action: {
                             showAddToCalendarCard = false
                         }) {
                             Text("Skip")
+                                .fontWeight(.bold)
                                 .foregroundColor(.gray)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
-                                .background(Color.gray.opacity(0.1))
+                                .background(.primaryBackground)
+                                .foregroundColor(.secondaryBackground)
                                 .cornerRadius(8)
                         }
                         
@@ -47,10 +50,12 @@ struct OutingCalendarCheck: View {
                             addToCalendar()
                         }) {
                             Text("Add")
+                                .fontWeight(.bold)
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
-                                .background(Color.blue)
+                                                        .background(.secondaryBackground)
+                        .foregroundColor(.primaryBackground)
                                 .cornerRadius(8)
                         }
                     }
@@ -58,7 +63,8 @@ struct OutingCalendarCheck: View {
                 .padding()
                 .background(Color.white)
                 .cornerRadius(12)
-                .shadow(color: Color.black.opacity(0.1), radius: 4)
+                .withShadow()
+                .withBorder()
                 .padding(.horizontal)
             }
         }

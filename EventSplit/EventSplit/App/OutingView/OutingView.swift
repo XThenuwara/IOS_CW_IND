@@ -16,20 +16,20 @@ struct OutingView: View {
         print("[OutingView] Outing ID:", outing)
         self.outing = outing
     }
-
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
                 // Header
                 HStack {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("\(outing.title ?? "Outing")")
-                    .font(.system(size: 28, weight: .bold))
-                Text("Discover events happening in your area")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
-            }
-            
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("\(outing.title ?? "Outing")")
+                            .font(.system(size: 28, weight: .bold))
+                        Text("Discover events happening in your area")
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray)
+                    }
+                    
                     
                     Spacer()
                     
@@ -39,6 +39,7 @@ struct OutingView: View {
                                 .font(.system(size: 14))
                             Text("Add Expense")
                                 .font(.subheadline)
+                                .fontWeight(.bold)
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
@@ -51,7 +52,7 @@ struct OutingView: View {
                 
                 // Calendar Check
                 if let eventData = outing.outingEvent?.event {
-                    OutingEventCard(eventData: eventData)
+                    OutingEventCard(outingEntity: outing,eventData: eventData)
                 }
                 
                 // Calendar Check
@@ -60,7 +61,7 @@ struct OutingView: View {
                     description: outing.desc ?? "",
                     startDate: outing.outingEvent?.event?.eventDate
                 )
-
+                
                 // Expenses Section
                 OutingExpensesSection(
                     users: users,
@@ -69,16 +70,16 @@ struct OutingView: View {
                     yourShare: outing.due,
                     onAddExpense: { showAddExpense = true }
                 )
-
-
+                
+                
                 // Owes Section
                 OutingOwesSection(
                     users: users,
                     participants: getParticipants(),
                     debts: (outing.debts as? Set<DebtEntity>)?.map { $0 } ?? [],
-                    totalBudget: outing.totalExpense
+                    yourShare: outing.due
                 )
-
+                
                 // Participants Section
                 ParticipantsSection(
                     users: users,
@@ -86,11 +87,13 @@ struct OutingView: View {
                 )
             }
             .padding(.bottom, 100)
-
+            
             Spacer()
         }
         .sheet(isPresented: $showAddExpense) {
-            AddExpenseDrawer(outing: outing)
+            DrawerModal(isOpen: $showAddExpense){
+                AddExpenseDrawer(outing: outing)
+            }
         }
         .onAppear{
             extractUsers()
@@ -112,7 +115,7 @@ struct OutingView: View {
             return []
         }
     }
-
+    
     private func getParticipants() -> [ParticipantDTO] {
         let activities = getActivities()
         var participantIds = Set<String>()
@@ -168,7 +171,7 @@ struct OutingView: View {
                 )
             }
         }
-
+        
         if let currentUser = AuthCoreDataModel.shared.currentUser,
            !extractedUsers.contains(where: { $0.id == currentUser.id }) {
             extractedUsers.append(currentUser)
@@ -177,14 +180,14 @@ struct OutingView: View {
         users = extractedUsers
         //print("[OutingView] Extracted Users:", users)
     }
-
+    
     struct UserInfo: Codable {
         let id: String
         let name: String
         let email: String
         let phoneNumber: String
     }
-
+    
     private func getActivitiesCount() -> Int {
         return getActivities().count
     }

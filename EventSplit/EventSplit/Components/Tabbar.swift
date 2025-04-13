@@ -1,3 +1,9 @@
+//
+//  Tabbar.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-03-21.
+//
 import SwiftUI
 
 struct TabItem: Identifiable {
@@ -12,7 +18,7 @@ struct Tabbar: View {
     private let tabs = [
         TabItem(icon: "house", label: "Home"),
         TabItem(icon: "calendar", label: "Events"),
-        TabItem(icon: "clock.arrow.circlepath", label: "History"),
+        TabItem(icon: "clock.arrow.circlepath", label: "Outings"),
         TabItem(icon: "person.2", label: "Groups"),
         TabItem(icon: "line.3.horizontal", label: "More")
     ]
@@ -39,10 +45,9 @@ struct Tabbar: View {
         .padding(.vertical, 14)
         .background(Color.white)
         .cornerRadius(100)
-        .withBorder()
         .withShadow()
         .padding(.horizontal)
-        .padding(.bottom, 8)
+        .padding(.top, 10)
     }
 }
 

@@ -1,7 +1,12 @@
+//
+//  Navbar.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-03-20.
+//
 import SwiftUI
 
 struct Navbar: View {
-
     @Binding var selectedTab: Int            
     @State private var showProfileSheet = false
     @State private var showNotificationsSheet = false
