@@ -14,41 +14,47 @@ struct ErrorCard: View {
     var body: some View {
         ZStack {
             if isVisible {
-                VStack(spacing: 16) {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .font(.system(size: 32))
-                        .foregroundColor(.red)
-                        .padding(.top)
-                    
-                    Text(message)
-                        .font(.system(size: 15))
-                        .multilineTextAlignment(.center)
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal)
-                    
-                    Divider()
+                Color.gray.opacity(0.4)
+                    .ignoresSafeArea()
+                    .background(.ultraThinMaterial)  
+                    .blur(radius: 10)
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(.secondaryBackground)
+                        
+                        Text(message)
+                            .font(.subheadline)
+                            .foregroundColor(.secondaryBackground)
+                    }
                     
                     Button(action: {
                         withAnimation {
                             onDismiss()
                         }
                     }) {
-                        Text("OK")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(.blue)
+                        Text("Dismiss")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundColor(.primaryBackground)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
+                            .padding(.vertical, 8)
+                            .background(.secondaryBackground)
+                            .cornerRadius(8)
                     }
+                    .frame(maxWidth: .infinity)
                 }
-                .background(Color(UIColor.secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .padding(16)
+                .background(.primaryBackground)
+                .cornerRadius(12)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(Color.red.opacity(0.2), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(.secondaryBackground.opacity(0.1), lineWidth: 1)
                 )
-                .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
-                .padding(.horizontal, 40)
+                .padding(.horizontal, 24)
                 .transition(.move(edge: .top).combined(with: .opacity))
+                .withShadow()
             }
         }
         .animation(.spring(), value: isVisible)

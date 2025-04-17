@@ -40,6 +40,10 @@ struct InputField: View {
             .padding()
             .background(.primaryBackground)
             .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(.gray.opacity(0.2), lineWidth: 1)
+            )
         }
     }
 }

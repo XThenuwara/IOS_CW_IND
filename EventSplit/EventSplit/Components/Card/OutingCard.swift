@@ -34,7 +34,7 @@ struct OutingCard: View {
         }
     }
     private var totalExpense: Double { outing.totalExpense }
-    private var youOwe: Double { totalExpense / Double(max(participants, 1)) }
+    private var youOwe: Double { outing.due }
     private var status: OutingStatus {
         OutingStatus(rawValue: outing.status ?? "in_progress") ?? .inProgress
     }
@@ -58,7 +58,32 @@ struct OutingCard: View {
         return activities.count
     }
     
+    @State private var currentUser: UserDTO? = AuthCoreDataModel.shared.currentUser
     
+    private func calculateYourShare() -> Double {
+        var yourShare = 0.0
+        guard let currentUserId = currentUser?.id.uuidString.lowercased() else { return 0.0 }
+        
+        guard let activitiesJson = outing.activities,
+              let data = activitiesJson.data(using: .utf8),
+              let activities = try? JSONDecoder().decode([ActivityDTO].self, from: data) else {
+            return 0.0
+        }
+        
+        for activity in activities {
+            if activity.participants.contains(where: { $0.lowercased() == currentUserId }) {
+                let participantCount = Double(activity.participants.count)
+                yourShare += activity.amount / participantCount
+            }
+            
+            if activity.paidById?.lowercased() == currentUserId {
+                yourShare -= activity.amount
+            }
+        }
+        return yourShare
+    }
+    
+
     var body: some View {
         VStack(spacing: 16) {
             // Header
@@ -114,14 +139,14 @@ struct OutingCard: View {
                 
                 Spacer()
                 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("You Owe")
-                        .font(.system(size: 12))
-                        .foregroundColor(.gray)
-                    Text("$\(String(format: "%.2f", youOwe))")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.red)
-                }
+                    VStack(alignment: .trailing, spacing: 4) {
+        Text(calculateYourShare() < 0 ? "You Get" : "You Owe")
+            .font(.system(size: 12))
+            .foregroundColor(.gray)
+        Text("$\(String(format: "%.2f", abs(calculateYourShare())))")
+            .font(.system(size: 14, weight: .medium))
+            .foregroundColor(calculateYourShare() < 0 ? .green : .red)
+    }
                 
                 Spacer()
                 
