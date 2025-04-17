@@ -11,7 +11,7 @@ import CoreData
 class EventCoreDataModel: ObservableObject {
     let container: NSPersistentContainer
     @Published var eventStore: [EventEntity] = []
-    lazy var serverModel = EventServerModel(coreDataModel: self)
+    lazy var serverModel = EventService(coreDataModel: self)
     private let locationManager = LocationManager()
 
     init() {

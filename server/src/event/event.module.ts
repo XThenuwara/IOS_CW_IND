@@ -3,10 +3,12 @@ import { EventService } from './event.service';
 import { EventController } from './event.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Event } from './entities/event.entity';
+import { PurchasedTickets } from './entities/purchased-tickets.entity';
+import { User } from '../user/entities/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Event]),
+    TypeOrmModule.forFeature([Event, PurchasedTickets, User]),
   ],
   controllers: [EventController],
   providers: [EventService],

@@ -1,3 +1,10 @@
+//
+//  NetworkHelper.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-04-16.
+//
+//
 import Foundation
 
 struct APIErrorResponse: Codable {
@@ -29,34 +36,28 @@ class NetworkHelper {
         body: T,
         headers: [String: String]? = nil
     ) -> Result<URLRequest, AuthError> {
-        print("========== REQUEST DEBUG ==========")
-        print("URL: \(url.absoluteString)")
-        print("Method: \(method)")
-        if let headers = headers {
-            print("Headers: \(headers)")
-        } else {
-            print("Headers: None")
-        }
-        do {
-            let jsonData = try JSONEncoder().encode(body)
-            print("Body: \(String(data: jsonData, encoding: .utf8) ?? "Unable to decode body")")
-        } catch {
-            print("Error encoding body for debug: \(error)")
-        }
-        print("==================================")
+        print("Creating request for URL: \(url.absoluteString)")
         
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
+        // Add headers
         headers?.forEach { key, value in
             request.setValue(value, forHTTPHeaderField: key)
         }
         
+        // Encode request body
         do {
-            request.httpBody = try JSONEncoder().encode(body)
+            let jsonData = try JSONEncoder().encode(body)
+            request.httpBody = jsonData
+            
+            // Debug logging
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                print("Request Body: \(jsonString)")
+            }
         } catch {
-            print("Error encoding request data: \(error)")
+            print("Error encoding request body: \(error)")
             return .failure(.unknown)
         }
         
@@ -64,13 +65,13 @@ class NetworkHelper {
     }
     
     static func handleResponse<T: Codable>(_ data: Data?, _ response: URLResponse?, _ error: Error?, completion: @escaping (Result<T, AuthError>) -> Void) {
-        print("========== DEBUG INFO ==========")
+        // print("========== DEBUG INFO ==========")
         if let data = data {
-            print("Response Data: \(String(data: data, encoding: .utf8) ?? "Unable to convert data to string")")
+           //print("Response Data: \(String(data: data, encoding: .utf8) ?? "Unable to convert data to string")")
         }
         if let response = response as? HTTPURLResponse {
-            print("Response Status Code: \(response.statusCode)")
-            print("Response Headers: \(response.allHeaderFields)")
+            //print("Response Status Code: \(response.statusCode)")
+            // print("Response Headers: \(response.allHeaderFields)")
             
             // Handle HTTP error status codes
             if response.statusCode >= 400 {
@@ -79,6 +80,7 @@ class NetworkHelper {
                     completion(.failure(.serverError(errorResponse.message)))
                     return
                 } catch {
+
                     completion(.failure(.unknown))
                     return
                 }
@@ -89,7 +91,7 @@ class NetworkHelper {
             completion(.failure(.networkError))
             return
         }
-        print("==============================")
+        // print("==============================")
         
         guard let data = data else {
             completion(.failure(.unknown))
