@@ -47,7 +47,7 @@
         <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="weatherCondition" optional="YES" attributeType="String"/>
-        <relationship name="outingEvent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OutingEventEntity" inverseName="event" inverseEntity="OutingEventEntity"/>
+        <relationship name="outingEvent" optional="YES" maxCount="1" deletionRule="No Action" destinationEntity="OutingEventEntity" inverseName="event" inverseEntity="OutingEventEntity"/>
     </entity>
     <entity name="NotificationEntity" representedClassName=".NotificationEntity" syncable="YES">
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
@@ -73,7 +73,7 @@
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="debts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="DebtEntity" inverseName="outing" inverseEntity="DebtEntity"/>
         <relationship name="outingActivity" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ActivityEntity" inverseName="outingActivity" inverseEntity="ActivityEntity"/>
-        <relationship name="outingEvent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OutingEventEntity" inverseName="outing" inverseEntity="OutingEventEntity"/>
+        <relationship name="outingEvent" optional="YES" maxCount="1" deletionRule="No Action" destinationEntity="OutingEventEntity" inverseName="outing" inverseEntity="OutingEventEntity"/>
     </entity>
     <entity name="OutingEventEntity" representedClassName=".OutingEventEntity" syncable="YES">
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -81,7 +81,7 @@
         <attribute name="tickets" optional="YES" attributeType="String"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="event" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="EventEntity" inverseName="outingEvent" inverseEntity="EventEntity"/>
-        <relationship name="outing" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OutingEntity" inverseName="outingEvent" inverseEntity="OutingEntity"/>
+        <relationship name="outing" optional="YES" maxCount="1" deletionRule="No Action" destinationEntity="OutingEntity" inverseName="outingEvent" inverseEntity="OutingEntity"/>
     </entity>
     <entity name="UserEntity" representedClassName="UserEntity" syncable="YES" codeGenerationType="class">
         <attribute name="avatar" optional="YES" attributeType="String"/>

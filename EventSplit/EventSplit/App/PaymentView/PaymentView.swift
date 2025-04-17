@@ -23,7 +23,17 @@ struct PurchaseTicketDTO: Codable {
 
 struct PaymentView: View {
     let event: EventEntity
+    let ticket: TicketDTO
+    @StateObject private var eventModel = EventCoreDataModel()
+    private let eventService: EventService
     @Environment(\.dismiss) private var dismiss
+
+    init(event: EventEntity, ticket: TicketDTO) {
+        self.event = event
+        self.ticket = ticket
+        self.eventService = EventService(coreDataModel: EventCoreDataModel())
+    }
+    
     
     @State private var cardNumber = ""
     @State private var expiryDate = ""
@@ -34,10 +44,9 @@ struct PaymentView: View {
     @State private var quantity: Int = 1
     
     private let maxTickets = 10
-    private let ticketPrice: Double = 29.99 // Replace with actual price from event
     
     var totalAmount: Double {
-        ticketPrice * Double(quantity)
+        ticket.price * Double(quantity)
     }
     
     var body: some View {
@@ -48,12 +57,13 @@ struct PaymentView: View {
                     Button(action: { dismiss() }) {
                         Image(systemName: "xmark")
                             .font(.system(size: 20))
-                            .foregroundColor(.primary)
+                            .foregroundColor(.secondaryBackground)
                     }
                     Spacer()
                     Text("Purchase Tickets")
                         .font(.title3)
                         .fontWeight(.semibold)
+                        .foregroundColor(.secondaryBackground)
                     Spacer()
                 }
                 .padding()
@@ -77,7 +87,7 @@ struct PaymentView: View {
                             HStack(spacing: 20) {
                                 Button(action: { if quantity > 1 { quantity -= 1 } }) {
                                     Image(systemName: "minus.circle.fill")
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(.secondaryBackground)
                                 }
                                 
                                 Text("\(quantity)")
@@ -87,7 +97,7 @@ struct PaymentView: View {
                                 
                                 Button(action: { if quantity < maxTickets { quantity += 1 } }) {
                                     Image(systemName: "plus.circle.fill")
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(.secondaryBackground)
                                 }
                             }
                         }
@@ -100,7 +110,7 @@ struct PaymentView: View {
                             HStack {
                                 Text("Price per ticket")
                                 Spacer()
-                                Text("$\(String(format: "%.2f", ticketPrice))")
+                                Text("LKR \(String(format: "%.2f", ticket.price))")
                             }
                             .foregroundColor(.secondary)
                             
@@ -108,13 +118,13 @@ struct PaymentView: View {
                                 Text("Total Amount")
                                     .fontWeight(.semibold)
                                 Spacer()
-                                Text("$\(String(format: "%.2f", totalAmount))")
+                                Text("LKR \(String(format: "%.2f", totalAmount))")
                                     .fontWeight(.semibold)
                             }
                         }
                     }
                     .padding()
-                    .background(Color(.systemGray6))
+                    .background(Color.white)
                     .cornerRadius(12)
                 }
                 .padding(.horizontal)
@@ -125,54 +135,15 @@ struct PaymentView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    VStack(spacing: 20) {
-                        // Card Number
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Card Number")
-                                .font(.subheadline)
-                            TextField("4242 4242 4242 4242", text: $cardNumber)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .keyboardType(.numberPad)
-                        }
-                        
-                        // Expiry and CVV
-                        HStack(spacing: 16) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Expiry Date")
-                                    .font(.subheadline)
-                                TextField("MM/YY", text: $expiryDate)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .keyboardType(.numberPad)
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("CVV")
-                                    .font(.subheadline)
-                                TextField("123", text: $cvv)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .keyboardType(.numberPad)
-                            }
-                        }
-                        
-                        // Cardholder Name
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Cardholder Name")
-                                .font(.subheadline)
-                            TextField("John Doe", text: $name)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                        }
-                        
-                        // Email
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Email")
-                                .font(.subheadline)
-                            TextField("john@example.com", text: $email)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .keyboardType(.emailAddress)
-                        }
-                    }
+                    PaymentOptions(
+                        cardNumber: $cardNumber,
+                        expiryDate: $expiryDate,
+                        cvv: $cvv,
+                        name: $name,
+                        email: $email
+                    )
                     .padding()
-                    .background(Color(.systemGray6))
+                    .background(Color.white)
                     .cornerRadius(12)
                 }
                 .padding(.horizontal)
@@ -184,45 +155,51 @@ struct PaymentView: View {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         } else {
-                            Text("Pay $\(String(format: "%.2f", totalAmount))")
+                            Text("Pay LKR\(String(format: "%.2f", totalAmount))")
                                 .fontWeight(.semibold)
                         }
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
+                    .background(.secondaryBackground)
+                    .foregroundColor(.primaryBackground)
                     .cornerRadius(12)
                 }
                 .disabled(isProcessing)
                 .padding()
             }
         }
+        .background(.primaryBackground)
         .navigationBarHidden(true)
     }
     
     private func processPayment() {
         isProcessing = true
         
-        let purchaseDTO = PurchaseTicketDTO(
-            eventId: event.id?.uuidString ?? "",
-            quantity: quantity,
-            totalAmount: totalAmount,
-            paymentDetails: .init(
-                cardNumber: cardNumber,
-                expiryDate: expiryDate,
-                cvv: cvv,
-                cardholderName: name,
-                email: email
-            )
+        let purchaseTicket = PurchaseTicketItem(
+            ticketType: ticket.name,
+            quantity: quantity
         )
         
-        // TODO: Send purchaseDTO to your backend
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            isProcessing = false
-            dismiss()
-        }
+        eventService.purchaseTickets(
+            eventId: event.id ?? UUID(),
+            tickets: [purchaseTicket],
+            paymentMethod: "CARD",
+            completion: { result in
+                DispatchQueue.main.async {
+                    isProcessing = false
+                    
+                    switch result {
+                    case .success(_):
+                        // Show success message or handle success case
+                        dismiss()
+                    case .failure(let error):
+                        // Handle error case
+                        print("Payment failed: \(error.localizedDescription)")
+                    }
+                }
+            }
+        )
     }
 }
 
@@ -233,6 +210,8 @@ struct PaymentView_Previews: PreviewProvider {
         event.title = "Sample Event"
         event.id = UUID()
         
-        return PaymentView(event: event)
+        let ticket = TicketDTO(id: "1", name: "General", price: 29.99, totalQuantity: 100, soldQuantity: 50)
+        
+        return PaymentView(event: event, ticket: ticket)
     }
 }
