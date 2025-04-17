@@ -2,7 +2,7 @@
 //  OutingEntity+CoreDataProperties.swift
 //  EventSplit
 //
-//  Created by Yasas Hansaka Thenuwara on 2025-04-10.
+//  Created by Yasas Hansaka Thenuwara on 2025-04-16.
 //
 //
 

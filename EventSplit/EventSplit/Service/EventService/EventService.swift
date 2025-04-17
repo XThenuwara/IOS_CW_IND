@@ -226,7 +226,7 @@ class EventService {
         print("DEBUG: Current eventStore count: \(coreDataModel.eventStore.count)")
         coreDataModel.eventStore.removeAll()
         print("DEBUG: EventStore cleared")
-\
+        
         for eventDTO in eventDTOs {
             if let eventEntity = convertToEventEntity(eventDTO: eventDTO, context: coreDataModel.container.viewContext) {
                 coreDataModel.eventStore.append(eventEntity)

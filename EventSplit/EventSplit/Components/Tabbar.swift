@@ -20,7 +20,7 @@ struct Tabbar: View {
         TabItem(icon: "calendar", label: "Events"),
         TabItem(icon: "clock.arrow.circlepath", label: "Outings"),
         TabItem(icon: "person.2", label: "Groups"),
-        TabItem(icon: "line.3.horizontal", label: "More")
+        TabItem(icon: "ticket", label: "Tickets")
     ]
     
     var body: some View {

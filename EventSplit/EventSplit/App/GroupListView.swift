@@ -6,7 +6,7 @@
 //
 import SwiftUI
 
-struct GroupView: View {
+struct GroupListView: View {
     @State private var showCreateGroup = false
     
     var body: some View {
@@ -68,6 +68,6 @@ struct GroupView: View {
 }
 
 #Preview {
-    GroupView()
+    GroupListView()
         .preferredColorScheme(.light)
 }

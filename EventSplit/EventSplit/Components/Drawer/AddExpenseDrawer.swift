@@ -11,6 +11,7 @@ import UIKit
 struct AddExpenseDrawer: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var outingCoreDataModel = OutingCoreDataModel()
+    private let outingService: OutingService
     @State private var currentUserId: String = ""
     @State private var expenseName: String = ""
     @State private var expenseCategory: String = ""
@@ -28,8 +29,11 @@ struct AddExpenseDrawer: View {
     let outing: OutingEntity
     
     init(outing: OutingEntity) {
-        print("[AddExpenseDrawer] Outing ID:", outing.id?.uuidString ?? "nil")
         self.outing = outing
+        let outingCoreDataModel = OutingCoreDataModel()
+        self.outingService = OutingService(coreDataModel: outingCoreDataModel)
+        print("[AddExpenseDrawer] Outing ID:", outing.id?.uuidString ?? "nil")
+   
         if let currentUser = AuthCoreDataModel.shared.currentUser {
             _currentUserId = State(initialValue: currentUser.id.uuidString)
         }
@@ -85,7 +89,7 @@ struct AddExpenseDrawer: View {
         ZStack {
             VStack(alignment: .leading, spacing: 20) {
                 Text("Add New Expense")
-                    .font(.title2)
+                    .font(.title)
                     .fontWeight(.bold)
                 
                 ScrollView {
@@ -217,10 +221,11 @@ struct AddExpenseDrawer: View {
                         Button(action: addExpense) {
                             Text("Add Expense")
                                 .font(.headline)
+                                .fontWeight(.bold)
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.blue)
+                                .background(.secondaryBackground)
                                 .cornerRadius(12)
                         }
                     }
@@ -296,15 +301,51 @@ struct AddExpenseDrawer: View {
             return
         }
         
-        outingCoreDataModel.addActivity(
+        outingService.addActivity(
             title: expenseName,
             description: "Expense added via mobile app",
             amount: amount,
             participantIds: Array(selectedParticipants),
+            paidById: paidById,
             outingId: outingId,
-            paidById: paidById
+            references: nil,
+            completion: { result in
+                switch result {
+                case .success(let activityDTO):
+                    // Upload image if one was selected
+                    if let image = selectedImage {
+                        outingService.uploadActivityImage(
+                            activityId: activityDTO.id.uuidString.lowercased(),
+                            image: image
+                        ) { uploadResult in
+                            switch uploadResult {
+                            case .success:
+                                print("✅ Image uploaded successfully")
+                                DispatchQueue.main.async {
+                                    dismiss()
+                                }
+                            case .failure(let error):
+                                print("❌ Failed to upload image: \(error)")
+                                DispatchQueue.main.async {
+                                    errors.append("Failed to upload receipt image")
+                                    isErrorVisible = true
+                                }
+                            }
+                        }
+                    } else {
+                        DispatchQueue.main.async {
+                            dismiss()
+                        }
+                    }
+                case .failure(let error):
+                    print("❌ Failed to add activity: \(error)")
+                    DispatchQueue.main.async {
+                        errors.append("Failed to add expense")
+                        isErrorVisible = true
+                    }
+                }
+            }
         )
-        //dismiss()
     }
 }
 

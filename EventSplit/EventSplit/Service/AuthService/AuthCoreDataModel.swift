@@ -5,7 +5,8 @@ class AuthCoreDataModel: ObservableObject {
     static let shared = AuthCoreDataModel()
     
     let container: NSPersistentContainer
-    @Published var currentUser: AuthEntity?
+    @Published var authEntity: AuthEntity?
+    @Published var currentUser: UserDTO?
     lazy var authService = AuthService(coreDataModel: self)
     
     private init() {
@@ -24,50 +25,21 @@ class AuthCoreDataModel: ObservableObject {
         let request = NSFetchRequest<AuthEntity>(entityName: "AuthEntity")
         do {
             let results = try container.viewContext.fetch(request)
-            currentUser = results.first
+            authEntity = results.first
+        
+            if let userData = authEntity?.user?.data(using: .utf8) {
+                do {
+                    let userInfo = try JSONDecoder().decode(UserDTO.self, from: userData)
+                    currentUser = userInfo
+                } catch {
+                    print("Error decoding user data:", error)
+                }
+            }
         } catch let error {
             print("Error fetching auth: \(error)")
         }
-    }
-    
-    func saveAuthData(accessToken: String, user: [String: Any]) {
-        clearAuthData()
-    
-        let auth = AuthEntity(context: container.viewContext)
-        auth.accessToken = accessToken
-        
-        do {
-            let userData = try JSONSerialization.data(withJSONObject: user)
-            auth.user = String(data: userData, encoding: .utf8)
-        } catch {
-            print("Error converting user data: \(error)")
-        }
-        
         saveData()
-        fetchCurrentUser()
     }
-    
-    func clearAuthData() {
-        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = AuthEntity.fetchRequest()
-        let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-        
-        do {
-            try container.viewContext.execute(batchDeleteRequest)
-            currentUser = nil
-        } catch let error {
-            print("Error clearing auth data: \(error)")
-        }
-    }
-    
-    func saveData() {
-        do {
-            try container.viewContext.save()
-        } catch let error {
-            print("Error saving data: \(error)")
-        }
-    }
-
-
     // Server authentication methods
     func login(email: String, password: String, completion: @escaping (Result<Void, AuthError>) -> Void) {
         Task {
@@ -80,7 +52,8 @@ class AuthCoreDataModel: ObservableObject {
                             user: [
                                 "id": authResponse.user.id.uuidString,
                                 "name": authResponse.user.name,
-                                "email": authResponse.user.email
+                                "email": authResponse.user.email,
+                                "phoneNumber": authResponse.user.phoneNumber
                             ]
                         )
                         completion(.success(()))
@@ -103,7 +76,8 @@ class AuthCoreDataModel: ObservableObject {
                             user: [
                                 "id": authResponse.user.id.uuidString,
                                 "name": authResponse.user.name,
-                                "email": authResponse.user.email
+                                "email": authResponse.user.email,
+                                "phoneNumber": authResponse.user.phoneNumber
                             ]
                         )
                         completion(.success(()))
@@ -114,13 +88,52 @@ class AuthCoreDataModel: ObservableObject {
             }
         }
     }
-    
-    
     func logout() {
         clearAuthData()
     }
     
     var isAuthenticated: Bool {
-        return currentUser?.accessToken != nil
+        return authEntity?.accessToken != nil
+    }
+
+    // Helper methods
+    func saveAuthData(accessToken: String, user: [String: Any]) {
+        clearAuthData()
+        
+        let auth = AuthEntity(context: container.viewContext)
+        auth.accessToken = accessToken
+        
+        do {
+            let userData = try JSONSerialization.data(withJSONObject: user)
+            auth.user = String(data: userData, encoding: .utf8)
+            // print("[saveAuthData] Saved user data:", auth.user ?? "nil")
+        } catch {
+            print("Error converting user data: \(error)")
+        }
+
+        saveData()  
+        fetchCurrentUser()
+    }
+    
+    func clearAuthData() {
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = AuthEntity.fetchRequest()
+        let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        
+        do {
+            try container.viewContext.execute(batchDeleteRequest)
+            currentUser = nil
+        } catch let error {
+            print("Error clearing auth data: \(error)")
+        }
+
+        saveData()
+    }
+    
+    func saveData() {
+        do {
+            try container.viewContext.save()
+        } catch let error {
+            print("Error saving data: \(error)")
+        }
     }
 }

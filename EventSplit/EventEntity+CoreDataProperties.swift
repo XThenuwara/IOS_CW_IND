@@ -2,7 +2,7 @@
 //  EventEntity+CoreDataProperties.swift
 //  EventSplit
 //
-//  Created by Yasas Hansaka Thenuwara on 2025-03-27.
+//  Created by Yasas Hansaka Thenuwara on 2025-04-16.
 //
 //
 
@@ -21,6 +21,7 @@ extension EventEntity {
     @NSManaged public var createdAt: Date?
     @NSManaged public var desc: String?
     @NSManaged public var eventDate: Date?
+    @NSManaged public var eventType: String?
     @NSManaged public var id: UUID?
     @NSManaged public var locationAddress: String?
     @NSManaged public var locationGPS: String?
@@ -34,7 +35,6 @@ extension EventEntity {
     @NSManaged public var title: String?
     @NSManaged public var updatedAt: Date?
     @NSManaged public var weatherCondition: String?
-    @NSManaged public var eventType: String?
     @NSManaged public var outingEvent: OutingEventEntity?
 
 }

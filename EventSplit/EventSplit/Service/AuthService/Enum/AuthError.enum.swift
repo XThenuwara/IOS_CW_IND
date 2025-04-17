@@ -1,6 +1,7 @@
 import Foundation
 
 enum AuthError: Error {
+    case noToken
     case invalidCredentials
     case networkError
     case serverError(String)
@@ -8,6 +9,8 @@ enum AuthError: Error {
     
     var localizedDescription: String {
         switch self {
+        case .noToken:
+            return "No token found"
         case .invalidCredentials:
             return "Invalid email or password"
         case .networkError:
