@@ -16,22 +16,23 @@ struct ParticipantChip: View {
             HStack(spacing: 8) {
                 Text(String(name.prefix(1)))
                     .font(.caption)
-                    .foregroundColor(.white)
+                    .foregroundColor(.primaryBackground)
                     .frame(width: 24, height: 24)
-                    .background(Circle().fill(Color.blue))
+                    .background(Circle().fill(.secondaryBackground))
                 
                 Text(name)
                     .font(.subheadline)
+                    .foregroundColor(.secondaryBackground)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(isSelected ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
+                    .fill(isSelected ? .secondaryBackground.opacity(0.1) : .primaryBackground)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 1)
+                    .stroke(isSelected ? .secondaryBackground : .clear, lineWidth: 1)
             )
         }
         .buttonStyle(PlainButtonStyle())

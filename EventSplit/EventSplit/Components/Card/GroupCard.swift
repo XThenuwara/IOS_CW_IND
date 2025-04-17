@@ -19,20 +19,21 @@ struct GroupCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(name)
                         .font(.headline)
+                        .foregroundColor(.secondaryBackground)
                     
                     Text(description)
                         .font(.subheadline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                 }
                 
                 Spacer()
                 
                 HStack(spacing: 4) {
                     Image(systemName: "person.2")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                     Text("\(memberCount)")
                         .font(.subheadline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                 }
             }
             
@@ -42,9 +43,9 @@ struct GroupCard: View {
                     ForEach(memberInitials.prefix(3), id: \.self) { initial in
                         Text(initial)
                             .font(.caption)
-                            .foregroundColor(.white)
+                            .foregroundColor(.secondaryBackground)
                             .frame(width: 24, height: 24)
-                            .background(Circle().fill(Color.blue))
+                            .background(Circle().fill(.primaryBackground))
                     }
                 }
                 
@@ -52,13 +53,12 @@ struct GroupCard: View {
                 
                 Text(timeAgo)
                     .font(.caption)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.white)
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
 }
 

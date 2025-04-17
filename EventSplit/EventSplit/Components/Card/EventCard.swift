@@ -9,7 +9,6 @@ import SwiftUI
 struct EventCard: View {
     let event: EventEntity
     @StateObject private var locationManager = LocationManager()
-    @State private var showEventDetails = false
     
     var distanceText: String {
         
@@ -20,9 +19,6 @@ struct EventCard: View {
     }
     
     var body: some View {
-        Button(action: {
-            showEventDetails = true
-        }) {
             VStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 16) {
                     // Title and Status
@@ -121,11 +117,6 @@ struct EventCard: View {
             .withBorder()
             .withShadow()
         }
-        .buttonStyle(PlainButtonStyle())
-        .fullScreenCover(isPresented: $showEventDetails) {
-            EventView(event: event)
-        }
-    }
 }
 
 #Preview {

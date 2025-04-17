@@ -38,7 +38,6 @@ struct DrawerModal<Content: View>: View {
                 .frame(maxWidth: .infinity)
                 .background(Color.white)
                 .cornerRadius(20)
-                .padding()
                 
         }
         .background(.primaryBackground)

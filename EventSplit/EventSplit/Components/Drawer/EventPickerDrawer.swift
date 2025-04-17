@@ -164,6 +164,7 @@ struct EventPickerView: View {
                     dismiss()
                 }
             )
+            .background(.primaryBackground)
         }
         .onAppear {
             selectedEventId = selectedEvents.first 

@@ -7,182 +7,175 @@
 import SwiftUI
 
 struct EventView: View {
-    let event: EventEntity    
+    let event: EventEntity
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                // Header
-                HStack {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "arrow.left")
-                            .font(.system(size: 20))
-                            .foregroundColor(.primary)
-                    }
-                    Text("Event Details")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    Spacer()
-                }
-                .padding()
-                
-                VStack(spacing: 0) {
-                    // Event Image
-                    ZStack(alignment: .bottomLeading) {
-                        Rectangle()
-                            .fill(LinearGradient(
-                                gradient: Gradient(colors: [.blue, .purple]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            ))
-                            .frame(height: 200)
-                        
-                        Text(event.eventType ?? "Event")
-                            .font(.caption)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.black.opacity(0.5))
-                            .cornerRadius(20)
-                            .padding()
-                    }
-                    
-                    VStack(spacing: 16) {
-                        // Title and Description
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(event.title ?? "")
-                                .font(.title2)
-                                .fontWeight(.bold)
+                VStack(spacing: 20) {
+                    VStack(spacing: 0) {
+                        // Event Image
+                        ZStack(alignment: .bottomLeading) {
+                            Rectangle()
+                                .fill(LinearGradient(
+                                    gradient: Gradient(colors: [.blue, .purple]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                ))
+                                .frame(height: 200)
                             
-                            Text(event.desc ?? "")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        // Location and Date
-                        HStack(spacing: 12) {
-                            // Location Card
-                            VStack(alignment: .leading) {
-                                HStack {
-                                    Image(systemName: "mappin.circle.fill")
-                                    Text(event.locationName ?? "")
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                        .lineLimit(1)
-                                }
-                                Text(event.locationAddress ?? "")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .lineLimit(1)
-                            }
-                            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(12)
-                            
-                            // Date Card
-                            VStack(alignment: .leading) {
-                                HStack {
-                                    Image(systemName: "calendar")
-                                    Text(formatDate(event.eventDate))
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                        .lineLimit(1)
-                                }
-                                Text(formatTime(event.eventDate))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .lineLimit(1)
-                            }
-                            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(12)
-                        }
-                        
-                        // Organizer Section
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Organizer")
-                                .font(.headline)
-                            
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(event.organizerName ?? "")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                
-                                HStack(spacing: 16) {
-                                    Link(destination: URL(string: "tel:\(event.organizerPhone ?? "")")!) {
-                                        HStack {
-                                            Image(systemName: "phone.fill")
-                                            Text(event.organizerPhone ?? "")
-                                        }
-                                    }
-                                    Link(destination: URL(string: "mailto:\(event.organizerEmail ?? "")")!) {
-                                        HStack {
-                                            Image(systemName: "envelope.fill")
-                                            Text("Email")
-                                        }
-                                    }
-                                }
+                            Text(event.eventType ?? "Event")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
-                            }
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(12)
-                        
-                        // Additional Information Sections
-                        let amenities = event.amenities?.components(separatedBy: ",") ?? []
-                        if !amenities.isEmpty {
-                            EventAmenitiesSection(amenities: amenities)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.black.opacity(0.5))
+                                .cornerRadius(20)
+                                .padding()
                         }
                         
-                        let requirements = event.requirements?.components(separatedBy: ",") ?? []
-                        if !requirements.isEmpty {
-                            EventRequirementsSection(
-                                requirements: requirements,
-                                weatherCondition: event.weatherCondition ?? "Not available"
-                            )
-                        }
-                        
-                        HStack {
-                            HStack {
-                                Image(systemName: "person.3.fill")
-                                Text("Capacity")
-                                    .fontWeight(.medium)
-                            }
-                            
-                            Spacer()
-                            
-                            VStack(alignment: .trailing) {
-                                Text("\(event.capacity - event.sold) tickets left")
-                                    .fontWeight(.semibold)
-                                Text("out of \(event.capacity)")
-                                    .font(.caption)
+                        VStack(spacing: 16) {
+                            // Title and Description
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(event.title ?? "")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                
+                                Text(event.desc ?? "")
+                                    .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            // Location and Date
+                            HStack(spacing: 12) {
+                                // Location Card
+                                VStack(alignment: .leading) {
+                                    HStack {
+                                        Image(systemName: "mappin.circle")
+                                        Text(event.locationName ?? "")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .lineLimit(1)
+                                    }
+                                    Text(event.locationAddress ?? "")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                        .lineLimit(1)
+                                }
+                                .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                                .background(.primaryBackground)
+                                .cornerRadius(12)
+                                
+                                // Date Card
+                                VStack(alignment: .leading) {
+                                    HStack {
+                                        Image(systemName: "calendar")
+                                        Text(formatDate(event.eventDate))
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .lineLimit(1)
+                                    }
+                                    Text(formatTime(event.eventDate))
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                        .lineLimit(1)
+                                }
+                                .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                                .background(.primaryBackground)
+                                .cornerRadius(12)
+                            }
+                            
+                            // Organizer Section
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Organizer")
+                                    .font(.headline)
+                                
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(event.organizerName ?? "")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                    
+                                    HStack(spacing: 16) {
+                                        Link(destination: URL(string: "tel:\(event.organizerPhone ?? "")")!) {
+                                            HStack {
+                                                Image(systemName: "phone")
+                                                Text(event.organizerPhone ?? "")
+                                            }
+                                        }
+                                        Link(destination: URL(string: "mailto:\(event.organizerEmail ?? "")")!) {
+                                            HStack {
+                                                Image(systemName: "envelope")
+                                                Text("Email")
+                                            }
+                                        }
+                                    }
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                }
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(.primaryBackground)
+                            .cornerRadius(12)
+                            
+                            // Additional Information Sections
+                            let amenities = event.amenities?.components(separatedBy: ",") ?? []
+                            if !amenities.isEmpty {
+                                EventAmenitiesSection(amenities: amenities)
+                            }
+                            
+                            let requirements = event.requirements?.components(separatedBy: ",") ?? []
+                            if !requirements.isEmpty {
+                                EventRequirementsSection(
+                                    requirements: requirements,
+                                    weatherCondition: event.weatherCondition ?? "Not available"
+                                )
+                            }
+                            
+                            HStack {
+                                HStack {
+                                    Image(systemName: "person.3")
+                                    Text("Capacity")
+                                        .fontWeight(.medium)
+                                }
+                                
+                                Spacer()
+                                
+                                VStack(alignment: .trailing) {
+                                    Text("\(event.capacity - event.sold) tickets left")
+                                        .fontWeight(.semibold)
+                                    Text("out of \(event.capacity)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .padding()
+                            .background(.primaryBackground)
+                            .cornerRadius(12)
+                            
                         }
                         .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(12)
-                        
-                        
-                        TicketsSection(
-                            event: event
-                        )
                     }
-                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(16)
+                    .withShadow()
+                    .withBorder()
                 }
-                .background(Color(.systemBackground))
-                .cornerRadius(16)
-                .shadow(radius: 5)
+                
+                PurchasedTicketsSection(event: event)
+                
+                
+                TicketsSection(
+                    event: event
+                )
             }
+            .padding(.horizontal, 10)
         }
-        .background(Color(.systemGroupedBackground))
-        .padding(.horizontal, 4)
+        .background(.primaryBackground)
     }
     
     private func formatDate(_ date: Date?) -> String {
@@ -247,7 +240,7 @@ struct EventView_Previews: PreviewProvider {
             "No Camera"
         ]
         """
-
+        
         event.ticketTypes = """
         [
             {

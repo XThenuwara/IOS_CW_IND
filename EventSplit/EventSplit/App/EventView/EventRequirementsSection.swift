@@ -15,15 +15,17 @@ struct EventRequirementsSection: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Requirements")
                     .font(.headline)
+                    .foregroundColor(.secondaryBackground)
                 
                 ForEach(requirements, id: \.self) { requirement in
                     HStack(spacing: 4) {
                         Circle()
+                            .fill(.secondaryBackground)
                             .frame(width: 4, height: 4)
                         Text(requirement)
                             .font(.caption)
+                            .foregroundColor(.secondaryBackground)
                     }
-                    .foregroundColor(.secondary)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -31,15 +33,16 @@ struct EventRequirementsSection: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Weather")
                     .font(.headline)
+                    .foregroundColor(.secondaryBackground)
                 
                 Text(weatherCondition)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.secondaryBackground)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(.primaryBackground)
         .cornerRadius(12)
     }
 }
