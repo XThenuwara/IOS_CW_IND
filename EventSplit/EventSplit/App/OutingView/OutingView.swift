@@ -13,7 +13,7 @@ struct OutingView: View {
     @State private var users: [UserDTO] = []
     
     init(outing: OutingEntity) {
-        print("[OutingView] Outing ID:", outing)
+        // print("[OutingView] Outing ID:", outing)
         self.outing = outing
     }
     

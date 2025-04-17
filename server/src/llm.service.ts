@@ -18,6 +18,7 @@ interface LLMResponse {
 export class LLMService {
   private readonly apiKey: string;
   private readonly apiUrl = 'https://api.awanllm.com/v1/chat/completions';
+  private receiptCache = new Map<string, any>();
 
   constructor(private configService: ConfigService) {
     this.apiKey = this.configService.get<string>('AWANLLM_API_KEY') || "";
@@ -55,7 +56,19 @@ export class LLMService {
     }
   }
 
+  private generateHash(text: string): string {
+    const crypto = require('crypto');
+    return crypto.createHash('md5').update(text).digest('hex');
+  }
+
   async analyzeReceipt(receiptText: string): Promise<any> {
+    const textHash = this.generateHash(receiptText);
+    
+    if (this.receiptCache.has(textHash)) {
+      console.log('Cache hit for receipt analysis');
+      return this.receiptCache.get(textHash);
+    }
+
     const messages: Message[] = [
       {
         role: 'system',
@@ -77,8 +90,13 @@ export class LLMService {
 
     try {
       const response = await this.generateResponse(messages);
-      console.log("🚀 ~ LLMService ~ analyzeReceipt ~ response:", response)
-      return JSON.parse(response);
+      const parsedResponse = JSON.parse(response);
+      
+      // Store in cache
+      this.receiptCache.set(textHash, parsedResponse);
+      
+      console.log("🚀 ~ LLMService ~ analyzeReceipt ~ response:", response);
+      return parsedResponse;
     } catch (error) {
       console.error('Receipt analysis error:', error);
       throw new Error('Failed to analyze receipt');
