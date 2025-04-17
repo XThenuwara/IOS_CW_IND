@@ -9,13 +9,22 @@ import SwiftUI
 struct TicketsSection: View {
     let event: EventEntity
     @State private var showPaymentView = false
-    @State private var selectedTicket: TicketDTO?
+    @State private var showCreateOuting = false
+    @State private var selectedTicket: TicketDTO = TicketDTO(
+        id: UUID().uuidString,
+        name: "",
+        price: 5000.0,
+        totalQuantity: 1,
+        soldQuantity: 0
+    )
     
-    private var tickets: [TicketDTO] {
+    @State private var processedTickets: [TicketDTO] = []
+    
+    private func loadTickets() {
         if let ticketData = event.ticketTypes?.data(using: .utf8) {
             do {
                 let tickets = try JSONDecoder().decode([TicketDTO].self, from: ticketData)
-                return tickets.map { ticket in
+                processedTickets = tickets.map { ticket in
                     var mutableTicket = ticket
                     mutableTicket.id = UUID().uuidString
                     return mutableTicket
@@ -26,11 +35,10 @@ struct TicketsSection: View {
         } else {
             print("❌ TicketsSection Failed to convert string to Data")
         }
-        return []
     }
     
     private var enumeratedTickets: [(index: Int, ticket: TicketDTO)] {
-        tickets.enumerated().map { (index: Int, ticket: TicketDTO) in
+        processedTickets.enumerated().map { (index: Int, ticket: TicketDTO) in
             (index: index, ticket: ticket)
         }
     }
@@ -44,7 +52,7 @@ struct TicketsSection: View {
                             Text("\(ticket.name) Ticket")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
-                            Text("$\(String(format: "%.2f", ticket.price))")
+                            Text("LKR \(String(format: "%.2f", ticket.price))")
                                 .font(.title)
                                 .fontWeight(.bold)
                             Text("\(ticket.available) available")
@@ -61,6 +69,8 @@ struct TicketsSection: View {
                             HStack {
                                 Image(systemName: "ticket")
                                 Text("Buy \(ticket.name)")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
                             }
                             .font(.caption)
                             .padding(.horizontal, 16)
@@ -71,7 +81,7 @@ struct TicketsSection: View {
                         }
                     }
                     
-                    if index < tickets.count - 1 {
+                    if index < processedTickets.count - 1 {
                         Divider()
                     }
                 }
@@ -86,28 +96,38 @@ struct TicketsSection: View {
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                 
-                Button(action: {}) {
+                Button(action: {
+                    showCreateOuting = true
+                }) {
                     HStack {
                         Image(systemName: "person.3")
                         Text("Create Group Outing")
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(Color.blue.opacity(0.1))
-                    .foregroundColor(.blue)
+                    .foregroundColor(.secondaryBackground)
+                    .background(Color.primaryBackground)
                     .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.blue.opacity(0.2), lineWidth: 1)
-                    )
                 }
             }
         }
         .padding()
         .background(Color(.systemBackground))
         .cornerRadius(16)
+        .withShadow()
+        .withBorder()
+        .onAppear {
+            loadTickets()
+        }
         .sheet(isPresented: $showPaymentView) {
-             PaymentView(event: event)
+            DrawerModal(isOpen: $showPaymentView) {
+                PaymentView(event: event, ticket: selectedTicket)
+            }
+        }
+        .sheet(isPresented: $showCreateOuting) {
+            DrawerModal(isOpen: $showCreateOuting) {
+                CreateOutingDrawerWithEvent(preSelectedEvent: event)
+            }
         }
     }
 }
