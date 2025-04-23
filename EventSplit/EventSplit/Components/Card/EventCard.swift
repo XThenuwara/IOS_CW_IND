@@ -112,7 +112,7 @@ struct EventCard: View {
                 }
                 .padding(16)
             }
-            .background(Color(UIColor.systemBackground))
+            .background(.highLightBackground)
             .cornerRadius(12)
             .withBorder()
             .withShadow()

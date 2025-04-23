@@ -25,7 +25,7 @@ struct OutingSummaryCard: View {
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text("Your Share")
+                    Text(yourShare < 0 ? "You Get" : "You Owe")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     Text("$\(String(format: "%.2f", abs(yourShare)))")

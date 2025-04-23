@@ -1,29 +1,36 @@
 //
-//  CreateOutingDrawer.swift
+//  CreateOutingDrawerWithEvent.swift
 //  EventSplit
 //
-//  Created by Yasas Hansaka Thenuwara on 2025-03-29.
+//  Created by Yasas Hansaka Thenuwara on 2025-04-12.
 //
 import SwiftUI
 import ContactsUI
 
-struct CreateOutingDrawer: View {
+struct CreateOutingDrawerWithEvent: View {
     @Environment(\.dismiss) var dismiss
-    let onSuccess: (() -> Void)?
     @State private var buttonState: ActionButtonState = .default
     @StateObject private var eventCoreData = EventCoreDataModel()
     @StateObject private var outingStore = OutingCoreDataModel()
     
+    let preSelectedEvent: EventEntity?
+    
     @State private var title: String = ""
     @State private var description: String = ""
     @State private var showEventPicker = false
-    @State private var selectedEventId: UUID? = nil
+    @State private var selectedEventId: UUID?
     @State private var showInviteMemberDrawer = false
     @State private var selectedContacts: [CNContact] = []
     
+    init(preSelectedEvent: EventEntity? = nil) {
+        self.preSelectedEvent = preSelectedEvent
+        _selectedEventId = State(initialValue: preSelectedEvent?.id)
+    }
+    
     var body: some View {
         VStack(spacing: 20) {
-            HStack() {
+            // Header
+            HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Create New Outing")
                         .font(.title)
@@ -33,7 +40,6 @@ struct CreateOutingDrawer: View {
                         .font(.subheadline)
                         .foregroundColor(.gray)
                 }
-                
                 Spacer()
             }
             
@@ -42,8 +48,7 @@ struct CreateOutingDrawer: View {
                 text: $title,
                 placeholder: "Enter outing title",
                 icon: "pencil",
-                label: "Title",
-                highlight: true
+                label: "Title"
             )
             
             // Description Input
@@ -61,7 +66,6 @@ struct CreateOutingDrawer: View {
                             .stroke(.gray.opacity(0.2), lineWidth: 1)
                     )
             }
-            
             
             // Selected Event
             if let eventId = selectedEventId,
@@ -91,12 +95,12 @@ struct CreateOutingDrawer: View {
                             selectedEventId = nil
                         }) {
                             Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.red)
+                                .foregroundColor(.secondaryBackground)
                                 .font(.title2)
                         }
                     }
                     .padding()
-                    .background(Color.gray.opacity(0.1))
+                    .background(Color.secondaryBackground.opacity(0.1))
                     .cornerRadius(12)
                 }
             }
@@ -122,59 +126,58 @@ struct CreateOutingDrawer: View {
                     .foregroundColor(.secondaryBackground)
                     .cornerRadius(16)
                 }
-                
             }
             
             // Members Section
-            HStack(spacing: 8) {
-                Text("Members")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-                
-                Spacer()
-                
-                Button(action: {
-                    showInviteMemberDrawer = true
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "person.badge.plus")
-                        Text("Invite Members")
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.secondaryBackground.opacity(0.1))
-                    .foregroundColor(.secondaryBackground)
-                    .cornerRadius(16)
-                }
-            }
-            
-            if selectedContacts.isEmpty {
-                
-            } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(selectedContacts, id: \.identifier) { contact in
-                            HStack {
-                                Text("\(contact.givenName) \(contact.familyName)")
-                                    .font(.caption)
-                                Button(action: {
-                                    selectedContacts.removeAll { $0.identifier == contact.identifier }
-                                }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(.gray)
-                                }
-                            }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(12)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 8) {
+                    Text("Members")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        showInviteMemberDrawer = true
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "person.badge.plus")
+                            Text("Invite Members")
                         }
-                        
-                        Button(action: {
-                            showInviteMemberDrawer = true
-                        }) {
-                            Image(systemName: "plus.circle.fill")
-                                .foregroundColor(.blue)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.secondaryBackground.opacity(0.1))
+                        .foregroundColor(.secondaryBackground)
+                        .cornerRadius(16)
+                    }
+                }
+                
+                if !selectedContacts.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(selectedContacts, id: \.identifier) { contact in
+                                HStack(spacing: 4) {
+                                    Text("\(contact.givenName) \(contact.familyName)")
+                                        .font(.caption)
+                                    Button(action: {
+                                        selectedContacts.removeAll { $0.identifier == contact.identifier }
+                                    }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(.secondaryBackground)
+                                    }
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.secondaryBackground.opacity(0.1))
+                                .cornerRadius(12)
+                            }
+                            
+                            Button(action: {
+                                showInviteMemberDrawer = true
+                            }) {
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundColor(.secondaryBackground)
+                            }
                         }
                     }
                 }
@@ -182,31 +185,31 @@ struct CreateOutingDrawer: View {
             
             Spacer()
             
-            // Create Button
-            ActionButton(
-                title: "Create Outing",
-                action: createOuting,
-                state: buttonState,
-                fullWidth: true
-            )
-            .disabled(title.isEmpty || description.isEmpty)
-            
-            .disabled(title.isEmpty || description.isEmpty)
-            
-            Text("Once created, you can invite members and manage the outing details")
-                .font(.caption)
-                .foregroundColor(.gray)
-                .multilineTextAlignment(.center)
-                .padding(.bottom)
+            // Create Button Section
+            VStack(spacing: 12) {
+                ActionButton(
+                    title: "Create Outing",
+                    action: createOuting,
+                    state: buttonState,
+                    fullWidth: true
+                )
+                .disabled(title.isEmpty || description.isEmpty)
+                
+                Text("Once created, you can invite members and manage the outing details")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+            }
         }
         .padding()
+        .padding(.bottom, 32)
         .sheet(isPresented: $showEventPicker) {
             EventPickerView(selectedEvents: Binding(
                 get: { selectedEventId.map { Set([$0]) } ?? Set() },
                 set: { selectedEventId = $0.first }
             ))
         }
-        .sheet(isPresented: $showInviteMemberDrawer) { 
+        .sheet(isPresented: $showInviteMemberDrawer) {
             DrawerModal(isOpen: $showInviteMemberDrawer) {
                 InviteMemberDrawer { contacts in
                     selectedContacts = contacts
@@ -219,51 +222,38 @@ struct CreateOutingDrawer: View {
     }
     
     private func createOuting() {
-        buttonState = .loading
-        let selectedEvent = selectedEventId.flatMap { eventId in
-            eventCoreData.eventStore.first { $0.id == eventId }
-        }
-        
-        let participants = OutingHelperService.shared.convertParticipantsToJSON(selectedContacts)
-        
-        
-        // Create outing without event
-        outingStore.createNewOuting(
-            title: title,
-            description: description,
-            event: selectedEvent,
-            participants: participants
-        )
-        buttonState = .success
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            dismiss()
-            onSuccess?()
-        }
-    }
-}
-
-struct EventChip: View {
-    let title: String
-    let onRemove: () -> Void
+    buttonState = .loading
     
-    var body: some View {
-        HStack(spacing: 4) {
-            Text(title)
-                .font(.caption)
-            
-            Button(action: onRemove) {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.gray)
+    let selectedEvent = selectedEventId.flatMap { eventId in
+        eventCoreData.eventStore.first { $0.id == eventId }
+    }
+    
+    let participants = OutingHelperService.shared.convertParticipantsToJSON(selectedContacts)
+    
+    outingStore.createNewOuting(
+        title: title,
+        description: description,
+        event: selectedEvent,
+        participants: participants
+    )
+    
+    CalendarService.shared.addEventToCalendar(
+        title: title,
+        description: description,
+        startDate: selectedEvent?.eventDate
+    ) { success in
+        if !success {
+            buttonState = .error
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                buttonState = .default
+            }
+            print("❌ Failed to add event to calendar")
+        } else {
+            buttonState = .success
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                dismiss()
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(12)
     }
 }
-
-
-#Preview {
-    CreateOutingDrawer(onSuccess: nil)
 }

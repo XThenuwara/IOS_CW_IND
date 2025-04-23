@@ -1,3 +1,9 @@
+//
+//  Login.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-04-02.
+//
 import SwiftUI
 
 struct Login: View {
@@ -11,6 +17,9 @@ struct Login: View {
     
     var body: some View {
         ZStack {
+            Color.primaryBackground
+                .ignoresSafeArea()
+            
             VStack(spacing: 24) {
                 // Header
                 VStack(spacing: 8) {
@@ -29,7 +38,8 @@ struct Login: View {
                         text: $email,
                         placeholder: "Email or phone number",
                         icon: "envelope.fill",
-                        label: nil
+                        label: nil,
+                        highlight: true
                     )
                     
                     InputField(
@@ -37,33 +47,36 @@ struct Login: View {
                         placeholder: "Password",
                         icon: "lock.fill",
                         label: nil,
-                        isSecure: true
+                        isSecure: true,
+                        highlight: true
                     )
                     
                     Button("Forgot Password?") {
                         // TODO:  Handle forgot password
                     }
-                    
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondaryBackground)
                     .font(.subheadline)
                     .frame(maxWidth: .infinity, alignment: .trailing)
                 }
                 
-                            
-            if showError {
-                ErrorCard(
-                    message: errorMessage,
-                    isVisible: showError,
-                    onDismiss: { showError = false }
-                )
-            }
-
+                
+                if showError {
+                    ErrorCard(
+                        message: errorMessage,
+                        isVisible: showError,
+                        onDismiss: { showError = false }
+                    )
+                }
+                
                 // Sign In Button
                 Button(action: handleSignIn) {
                     Text("Sign In")
+                        .fontWeight(.semibold)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
+                        .background(.secondaryBackground)
+                        .foregroundColor(.primaryBackground)
                         .cornerRadius(8)
                 }
                 
@@ -74,10 +87,30 @@ struct Login: View {
                     Button("Sign up") {
                         showSignUp = true
                     }
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondaryBackground)
                 }
                 .font(.subheadline)
+                
+                // #if DEBUG
+                // Spacer()
+                // Button(action: {
+                //     email = "john@example.com"
+                //     password = ""
+                //     handleSignIn()
+                // }) {
+                //     Text("Debug Login")
+                //         .font(.caption)
+                //         .padding(.horizontal, 12)
+                //         .padding(.vertical, 6)
+                //         .background(Color.gray.opacity(0.1))
+                //         .foregroundColor(.gray)
+                //         .cornerRadius(8)
+                // }
+                // #endif
             }
             .padding()
+            .background(.primaryBackground)
             .sheet(isPresented: $showSignUp) {
                 SignUp()
             }

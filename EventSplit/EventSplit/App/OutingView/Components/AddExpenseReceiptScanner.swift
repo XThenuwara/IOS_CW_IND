@@ -88,7 +88,7 @@ struct AddExpenseReceiptScanner: View {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.gray.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [5]))
                     .frame(height: 150)
-                    .background(.primaryBackground)
+                    .background(.highLightBackground)
                     .cornerRadius(12)
                 
                 if isProcessing {

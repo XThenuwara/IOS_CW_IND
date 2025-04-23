@@ -13,6 +13,7 @@ struct InputField: View {
     let label: String?
     let autoCapitalization: TextInputAutocapitalization = .never
     var isSecure: Bool = false
+    var highlight: Bool = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -38,7 +39,7 @@ struct InputField: View {
                 }
             }
             .padding()
-            .background(.primaryBackground)
+            .background(highlight ? .highLightBackground : .primaryBackground)
             .cornerRadius(8)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)

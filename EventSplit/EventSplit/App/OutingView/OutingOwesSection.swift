@@ -15,7 +15,7 @@ struct OutingOwesSection: View {
     var body: some View {
         VStack(spacing: 16) {
             // Header
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text("Outstanding Balances")
                     .font(.title3)
                     .fontWeight(.semibold)
@@ -48,11 +48,7 @@ struct OutingOwesSection: View {
                     .foregroundColor(yourShare < 0 ? .primaryBackground : .secondaryBackground)
                     .cornerRadius(12)
                 }
-                
-                Text("Secure payments powered by Stripe")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
+
                 Text("In-app payments are processed instantly. Manual settlements need to be confirmed by both parties.")
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -60,7 +56,7 @@ struct OutingOwesSection: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(.highLightBackground)
         .cornerRadius(16)
         .withShadow()
         .withBorder()

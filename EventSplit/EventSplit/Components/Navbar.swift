@@ -60,7 +60,7 @@ struct Navbar: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
-        .background(Color.white)
+        .background(.highLightBackground)
         .cornerRadius(100)
         .shadow(color: Color.gray.opacity(0.3), radius: 2)
         .padding(.horizontal)

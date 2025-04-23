@@ -19,9 +19,9 @@ struct OutingCard: View {
         }
         
         do {
-        
+            
             let participantStrings = try JSONDecoder().decode([String].self, from: participantsJson.data(using: .utf8)!)
-           
+            
             let participants = try participantStrings.compactMap { participantString -> ParticipantDTO? in
                 guard let data = participantString.data(using: .utf8) else { return nil }
                 return try JSONDecoder().decode(ParticipantDTO.self, from: data)
@@ -83,7 +83,7 @@ struct OutingCard: View {
         return yourShare
     }
     
-
+    
     var body: some View {
         VStack(spacing: 16) {
             // Header
@@ -106,7 +106,7 @@ struct OutingCard: View {
                             .font(.system(size: 14))
                             .foregroundColor(.gray)
                     }
-
+                    
                     HStack(spacing: 4) {
                         Image(systemName: "calendar.badge.clock")
                             .foregroundColor(.gray)
@@ -139,37 +139,40 @@ struct OutingCard: View {
                 
                 Spacer()
                 
-                    VStack(alignment: .trailing, spacing: 4) {
-        Text(calculateYourShare() < 0 ? "You Get" : "You Owe")
-            .font(.system(size: 12))
-            .foregroundColor(.gray)
-        Text("$\(String(format: "%.2f", abs(calculateYourShare())))")
-            .font(.system(size: 14, weight: .medium))
-            .foregroundColor(calculateYourShare() < 0 ? .green : .red)
-    }
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(calculateYourShare() < 0 ? "You Get" : "You Owe")
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                    Text("$\(String(format: "%.2f", abs(calculateYourShare())))")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(calculateYourShare() < 0.01 ? .green : .red)
+                }
                 
                 Spacer()
                 
                 Button(action: {
                     showAddExpenseSheet = true 
                 }) {
-                    Text("Add Expense")
-                        .font(.system(size: 14, weight: .medium))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(.primaryBackground)
-                        .foregroundColor(.secondaryBackground)
-                        .cornerRadius(20)
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Add Expense")
+                    }
+                    .font(.system(size: 14, weight: .medium))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(.primaryBackground)
+                    .foregroundColor(.secondaryBackground)
+                    .cornerRadius(20)
                 }
             }
         }
         .padding(16)
-        .background(Color.white)
+        .background(.highLightBackground)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 2)
         .sheet(isPresented: $showAddExpenseSheet) {
             DrawerModal(isOpen: $showAddExpenseSheet) {
-                AddExpenseDrawer(outing: outing)
+                AddExpenseDrawer(outing: outing, onSuccess: {})
                     .presentationDetents([.large])
             }
         }

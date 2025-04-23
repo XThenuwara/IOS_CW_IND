@@ -11,11 +11,11 @@ extension View {
     func withBorder() -> some View {
         self.overlay(
             RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                    .stroke(Color.lineBackground.opacity(0.2), lineWidth: 1)
         )
     }
     
-    func withBorder(color: Color = .gray, opacity: Double = 0.3, radius: CGFloat = 100, lineWidth: CGFloat = 1) -> some View {
+    func withBorder(color: Color = .lineBackground, opacity: Double = 0.3, radius: CGFloat = 100, lineWidth: CGFloat = 1) -> some View {
         self.overlay(
             RoundedRectangle(cornerRadius: radius)
                 .stroke(color.opacity(opacity), lineWidth: lineWidth)

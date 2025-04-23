@@ -9,8 +9,10 @@ import PhotosUI
 import UIKit
 
 struct AddExpenseDrawer: View {
+    let onSuccess: () -> Void
     @Environment(\.dismiss) private var dismiss
     @StateObject private var outingCoreDataModel = OutingCoreDataModel()
+    @State private var buttonState: ActionButtonState = .default
     private let outingService: OutingService
     @State private var currentUserId: String = ""
     @State private var expenseName: String = ""
@@ -25,15 +27,16 @@ struct AddExpenseDrawer: View {
     @State private var paidById: String = ""
     @State private var errors: [String] = []
     @State private var isErrorVisible = false
-
+    
     let outing: OutingEntity
     
-    init(outing: OutingEntity) {
+    init(outing: OutingEntity, onSuccess: @escaping () -> Void) {
         self.outing = outing
-        let outingCoreDataModel = OutingCoreDataModel()
-        self.outingService = OutingService(coreDataModel: outingCoreDataModel)
+        self.onSuccess = onSuccess
+        let outingCoreDataModel =  OutingCoreDataModel.shared
+        self.outingService = OutingService(coreDataModel: OutingCoreDataModel.shared)
         print("[AddExpenseDrawer] Outing ID:", outing.id?.uuidString ?? "nil")
-   
+        
         if let currentUser = AuthCoreDataModel.shared.currentUser {
             _currentUserId = State(initialValue: currentUser.id.uuidString)
         }
@@ -73,7 +76,7 @@ struct AddExpenseDrawer: View {
         return allParticipants
     }
     
-
+    
     
     private var filteredParticipants: [ParticipantDTO] {
         if searchText.isEmpty {
@@ -82,15 +85,25 @@ struct AddExpenseDrawer: View {
         return participants.filter { $0.name.lowercased().contains(searchText.lowercased()) }
     }
     
-
-
+    
+    
     
     var body: some View {
         ZStack {
             VStack(alignment: .leading, spacing: 20) {
-                Text("Add New Expense")
-                    .font(.title)
-                    .fontWeight(.bold)
+                HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Add New Expense")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.secondaryBackground)
+                    Text("Add and split expenses with your group")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                }
+                Spacer()
+            }
+            .padding(.bottom, 8)
                 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
@@ -109,7 +122,7 @@ struct AddExpenseDrawer: View {
                                 if let merchant = analysis.merchantName {
                                     self.merchantName = merchant
                                 }
-
+                                
                                 var expenseTitle = ""
                                 if !merchantName.isEmpty {
                                     expenseTitle = merchantName
@@ -126,13 +139,28 @@ struct AddExpenseDrawer: View {
                             }
                         )
                         
+                        // Warning Message
+                        if selectedImage == nil {
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .foregroundColor(.orange)
+                                Text("Receipt analysis results may not be 100% accurate. Please verify all details before adding the expense.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding()
+                            .background(Color.orange.opacity(0.1))
+                            .cornerRadius(8)
+                        }
+                        
                         // Expense Details
                         VStack(alignment: .leading, spacing: 16) {
                             InputField(
                                 text: $expenseName,
                                 placeholder: "e.g., Dinner, Tickets, etc.",
                                 icon: nil,
-                                label: "Expense Name"
+                                label: "Expense Name",
+                                highlight: true
                             )
                             
                             if !expenseCategory.isEmpty {
@@ -141,8 +169,8 @@ struct AddExpenseDrawer: View {
                                         .font(.caption)
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
-                                        .background(Color.blue.opacity(0.1))
-                                        .foregroundColor(.blue)
+                                        .background(.secondaryBackground)
+                                        .foregroundColor(.primaryBackground)
                                         .cornerRadius(16)
                                 }
                             }
@@ -151,7 +179,8 @@ struct AddExpenseDrawer: View {
                                 text: $amount,
                                 placeholder: "$ 0.00",
                                 icon: nil,
-                                label: "Amount"
+                                label: "Amount",
+                                highlight: true
                             )
                             .keyboardType(.decimalPad)
                         }
@@ -166,9 +195,9 @@ struct AddExpenseDrawer: View {
                                 LazyHGrid(rows: [GridItem(.flexible())], spacing: 8) {
                                     ForEach(filteredParticipants, id: \.id) { participant in
                                         ParticipantChip(
-                                            name: participant.id == currentUserId 
-                                                ? "\(participant.name) (me)"
-                                                : participant.name,
+                                            name: participant.id == currentUserId
+                                            ? "\(participant.name) (me)"
+                                            : participant.name,
                                             isSelected: paidById == participant.id,
                                             action: {
                                                 paidById = participant.id
@@ -191,9 +220,9 @@ struct AddExpenseDrawer: View {
                                 LazyHGrid(rows: [GridItem(.flexible())], spacing: 8) {
                                     ForEach(filteredParticipants, id: \.id) { participant in
                                         ParticipantChip(
-                                            name: participant.id == currentUserId 
-                                                ? "\(participant.name) (me)"
-                                                : participant.name,
+                                            name: participant.id == currentUserId
+                                            ? "\(participant.name) (me)"
+                                            : participant.name,
                                             isSelected: selectedParticipants.contains(participant.id),
                                             action: {
                                                 if selectedParticipants.contains(participant.id) {
@@ -218,18 +247,15 @@ struct AddExpenseDrawer: View {
                         }
                         
                         // Add Expense Button
-                        Button(action: addExpense) {
-                            Text("Add Expense")
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(.secondaryBackground)
-                                .cornerRadius(12)
-                        }
+                        ActionButton(
+                            title: "Add Expense",
+                            action: addExpense,
+                            state: buttonState,
+                            fullWidth: true
+                        )
                     }
                 }
+                .padding(.horizontal, 2)
             }
             .padding()
             
@@ -266,38 +292,44 @@ struct AddExpenseDrawer: View {
     }
     
     
-
+    
     
     private func addExpense() {
         errors.removeAll()
+        buttonState = .loading
         
         guard let amount = Double(amount), amount > 0 else {
             errors.append("Please enter a valid amount")
             isErrorVisible = true
+            buttonState = .error
             return
         }
         
         guard !expenseName.isEmpty else {
             errors.append("Please enter an expense name")
             isErrorVisible = true
+            buttonState = .error
             return
         }
         
         guard !selectedParticipants.isEmpty else {
             errors.append("Please select at least one participant")
             isErrorVisible = true
+            buttonState = .error
             return
         }
         
         guard let outingId = outing.id?.uuidString else {
             errors.append("Invalid outing ID")
             isErrorVisible = true
+            buttonState = .error
             return
         }
         
         guard !paidById.isEmpty else {
             errors.append("Please select who paid for the expense")
             isErrorVisible = true
+            buttonState = .error
             return
         }
         
@@ -312,7 +344,6 @@ struct AddExpenseDrawer: View {
             completion: { result in
                 switch result {
                 case .success(let activityDTO):
-                    // Upload image if one was selected
                     if let image = selectedImage {
                         outingService.uploadActivityImage(
                             activityId: activityDTO.id.uuidString.lowercased(),
@@ -322,19 +353,26 @@ struct AddExpenseDrawer: View {
                             case .success:
                                 print("✅ Image uploaded successfully")
                                 DispatchQueue.main.async {
-                                    dismiss()
+                                    buttonState = .success
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                        dismiss()
+                                        onSuccess()
+                                    }
                                 }
                             case .failure(let error):
                                 print("❌ Failed to upload image: \(error)")
                                 DispatchQueue.main.async {
                                     errors.append("Failed to upload receipt image")
                                     isErrorVisible = true
+                                    buttonState = .error
                                 }
                             }
                         }
                     } else {
-                        DispatchQueue.main.async {
+                        buttonState = .success
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                             dismiss()
+                            onSuccess()
                         }
                     }
                 case .failure(let error):
@@ -349,16 +387,4 @@ struct AddExpenseDrawer: View {
     }
 }
 
-
-
-
-
-#Preview {
-    let context = PersistenceController.preview.container.viewContext
-    let outing = OutingEntity(context: context)
-    outing.participants = """
-        ["John Doe", "Jane Smith", "Mike Johnson"]
-    """
-    return AddExpenseDrawer(outing: outing)
-}
 

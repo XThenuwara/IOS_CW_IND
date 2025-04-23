@@ -11,7 +11,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var location: CLLocation?
     
     override init() {
-        print("📱 LocationManager initializing...")
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest

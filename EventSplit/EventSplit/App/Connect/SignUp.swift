@@ -1,9 +1,16 @@
+//
+//  SignUp.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-04-02.
+//
 import SwiftUI
 
 struct SignUp: View {
     @ObservedObject private var authModel = AuthCoreDataModel.shared
     @State private var fullName: String = ""
     @State private var email: String = ""
+    @State private var phoneNumber: String = ""
     @State private var password: String = ""
     @State private var confirmPassword: String = ""
     @Environment(\.dismiss) private var dismiss
@@ -27,14 +34,24 @@ struct SignUp: View {
                     text: $fullName,
                     placeholder: "Full name",
                     icon: "person.fill",
-                    label: nil
+                    label: nil,
+                    highlight: true
                 )
                 
                 InputField(
                     text: $email,
-                    placeholder: "Email or phone number",
+                    placeholder: "Email",
                     icon: "envelope.fill",
-                    label: nil
+                    label: nil,
+                    highlight: true
+                )
+                
+                InputField(
+                    text: $phoneNumber,
+                    placeholder: "Phone number",
+                    icon: "phone.fill",
+                    label: nil,
+                    highlight: true
                 )
                 
                 InputField(
@@ -42,7 +59,8 @@ struct SignUp: View {
                     placeholder: "Password",
                     icon: "lock.fill",
                     label: nil,
-                    isSecure: true
+                    isSecure: true,
+                    highlight: true
                 )
                 
                 InputField(
@@ -50,7 +68,16 @@ struct SignUp: View {
                     placeholder: "Confirm password",
                     icon: "lock.fill",
                     label: nil,
-                    isSecure: true
+                    isSecure: true,
+                    highlight: true
+                )
+            }
+            
+            if showError {
+                ErrorCard(
+                    message: errorMessage,
+                    isVisible: showError,
+                    onDismiss: { showError = false }
                 )
             }
             
@@ -62,13 +89,16 @@ struct SignUp: View {
                 
                 HStack(spacing: 4) {
                     Button("Terms of Service") {
-                       
                     }
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondaryBackground)
+                    
                     Text("•")
                         .foregroundColor(.gray)
                     Button("Privacy Policy") {
-                        
                     }
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondaryBackground)
                 }
                 .font(.caption)
             }
@@ -76,10 +106,11 @@ struct SignUp: View {
             // Sign Up Button
             Button(action: handleSignUp) {
                 Text("Create Account")
+                    .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
+                    .background(.secondaryBackground)
+                    .foregroundColor(.primaryBackground)
                     .cornerRadius(8)
             }
             
@@ -90,36 +121,39 @@ struct SignUp: View {
                 Button("Sign in") {
                     dismiss()
                 }
+                .fontWeight(.semibold)
+                .foregroundColor(.secondaryBackground)
             }
             .font(.subheadline)
         }
         .padding()
+        .ignoresSafeArea()
     }
     
     @State private var showError = false
-        @State private var errorMessage = ""
-        
-        private func handleSignUp() {
-            guard password == confirmPassword else {
-                withAnimation {
-                    errorMessage = "Passwords do not match"
-                    showError = true
-                }
-                return
+    @State private var errorMessage = ""
+    
+    private func handleSignUp() {
+        guard password == confirmPassword else {
+            withAnimation {
+                errorMessage = "Passwords do not match"
+                showError = true
             }
-            
-            authModel.signup(name: fullName, email: email, password: password) { result in
-                switch result {
-                case .success:
-                    dismiss()
-                case .failure(let error):
-                    withAnimation {
-                        errorMessage = error.localizedDescription
-                        showError = true
-                    }
+            return
+        }
+        
+        authModel.signup(name: fullName, email: email, phoneNumber: phoneNumber, password: password) { result in
+            switch result {
+            case .success:
+                dismiss()
+            case .failure(let error):
+                withAnimation {
+                    errorMessage = error.localizedDescription
+                    showError = true
                 }
             }
         }
+    }
 }
 
 

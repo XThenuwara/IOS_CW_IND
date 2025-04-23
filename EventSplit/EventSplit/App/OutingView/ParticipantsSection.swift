@@ -65,9 +65,9 @@ struct ParticipantsSection: View {
                     }
                     .padding(.all, 4)
                     .padding(.horizontal, 8)
-                    .cornerRadius(100)
                     .background(.primaryBackground)
                     .foregroundColor(.secondaryBackground)
+                    .cornerRadius(100)
                 }
             }
             
@@ -112,7 +112,7 @@ struct ParticipantsSection: View {
 
         .padding()
         .withBorder()
-        .background(Color.white)
+        .background(.highLightBackground)
         .sheet(isPresented: $showInvite) {
             DrawerModal(isOpen: $showInvite) {
                 InviteMemberDrawer { contacts in

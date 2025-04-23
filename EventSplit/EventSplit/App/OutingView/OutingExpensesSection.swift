@@ -62,7 +62,7 @@ struct OutingExpensesSection: View {
             )
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(.highLightBackground)
         .cornerRadius(16)
         .withBorder()
         .withShadow()
@@ -74,13 +74,11 @@ struct OutingExpensesSection: View {
         guard let currentUserId = currentUser?.id.uuidString.lowercased() else { return 0.0 }
         
         for activity in activities {
-            // Add your share if you're a participant
             if activity.participants.contains(where: { $0.lowercased() == currentUserId }) {
                 let participantCount = Double(activity.participants.count)
                 yourShare += activity.amount / participantCount
             }
             
-            // Subtract the full amount if you paid for it
             if activity.paidById?.lowercased() == currentUserId {
                 yourShare -= activity.amount
             }

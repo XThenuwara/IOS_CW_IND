@@ -13,7 +13,7 @@ extension View {
                 // .frame(height: 10)
                 Spacer()
                 LinearGradient(
-                    gradient: Gradient(colors: [Color.clear, Color.gray.opacity(0.1)]),
+                    gradient: Gradient(colors: [Color.clear, Color.primaryBackground.opacity(0.1)]),
                     startPoint: .top,
                     endPoint: .bottom
                 )

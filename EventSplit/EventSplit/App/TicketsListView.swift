@@ -62,13 +62,15 @@ struct TicketsListView: View {
                     List(purchasedTickets, id: \.id) { ticket in
                         EventTicketsCard(ticket: ticket)
                             .listRowInsets(EdgeInsets())
+                            .listRowSeparator(.hidden)
                             .padding(.bottom, 6)
                             .padding(.top, 6)
-                             .listRowBackground(Color.clear)
+                            .listRowBackground(Color.clear)
                     }
                     .listStyle(.plain)
                     .scrollContentBackground(.hidden)
                     .background(Color.primaryBackground)
+                    .withVerticalInnerShadow()
                     .padding(0)
                     .refreshable {
                         await loadTicketsAsync()

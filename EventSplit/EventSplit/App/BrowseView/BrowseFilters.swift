@@ -24,7 +24,7 @@ struct BrowseFilters: View {
                             selectedLocation = String(Int($0))
                             onFilterUpdate()
                         }
-                    ), in: 1...20000, step: 1)
+                    ), in: 0...20000, step: 10)
                     .tint(.gray)
                 }
                 .frame(width: 198, height: 20)

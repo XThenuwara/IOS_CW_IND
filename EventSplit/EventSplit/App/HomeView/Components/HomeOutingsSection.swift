@@ -33,7 +33,7 @@ struct HomeOutingsSection: View {
             } else if !outingCoreData.outingStore.isEmpty {
                 LazyVStack(spacing: 16) {
                     ForEach(Array(outingCoreData.outingStore.prefix(2))) { outing in
-                        NavigationLink(destination: OutingView(outing: outing)) {
+                        NavigationLink(destination: OutingView(initialOuting: outing)) {
                             OutingCard(outing: outing)
                         }
                         .buttonStyle(PlainButtonStyle())

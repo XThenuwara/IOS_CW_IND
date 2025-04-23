@@ -83,7 +83,7 @@ struct EventTicketsCard: View {
         .padding()
         .background(
             ZStack {
-                Color(.systemBackground)
+                Color(.highLightBackground)
                 GeometryReader { geometry in
                     Path { path in
                         let width = geometry.size.width
@@ -124,6 +124,7 @@ struct EventTicketsCard: View {
     let sampleTicket = PurchasedTicketsWithEventDTO(
         id: UUID(),
         eventId: UUID(),
+        outingId: UUID(),
         userId: UUID(),
         ticketType: "VIP",
         quantity: 2,
