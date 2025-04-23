@@ -1,3 +1,9 @@
+//
+//  CreateGroupDrawer.swift
+//  EventSplit
+//
+//  Created by Yasas Hansaka Thenuwara on 2025-04-12.
+//
 import SwiftUI
 import ContactsUI
 
@@ -6,15 +12,24 @@ struct CreateGroupDrawer: View {
     @State private var description: String = ""
     @State private var selectedContacts: [CNContact] = []
     @State private var showInviteMemberDrawer = false
+    @State private var showError = false
+    @State private var errorMessage = ""
     @Environment(\.dismiss) private var dismiss
-
+    
     private func createGroup() {
-        // Mock implementation
-        print("Creating group with:")
-        print("Name: \(groupName)")
-        print("Description: \(description)")
-        print("Members: \(selectedContacts.count)")
+         if groupName.isEmpty {
+            errorMessage = "Please enter a group name"
+            showError = true
+            return
+        }
         
+        if selectedContacts.isEmpty {
+            errorMessage = "Please select at least one member"
+            showError = true
+            return
+        }
+
+
         // Simulate API call delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             // Mock success
@@ -22,33 +37,33 @@ struct CreateGroupDrawer: View {
             dismiss()
         }
     }
-
+    
     
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             Text("Create New Group")
-                .font(.title2)
+                .font(.title)
                 .fontWeight(.bold)
             
             VStack(alignment: .leading, spacing: 16) {
                 // Group Name
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Group Name")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                    
-                    TextField("Enter group name", text: $groupName)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    InputField(
+                        text: $groupName,
+                        placeholder: "Enter group name",
+                        icon: "person.2.circle",
+                        label: "Group Name"
+                    )
                 }
                 
                 // Description
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Description")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                    
-                    TextField("What's this group about?", text: $description)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    InputField(
+                        text: $description,
+                        placeholder: "What's this group about?",
+                        icon: "text.alignleft",
+                        label: "Description"
+                    )
                 }
                 
                 // Add Members
@@ -64,7 +79,8 @@ struct CreateGroupDrawer: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color(.systemGray6))
+                        .foregroundColor(.secondaryBackground)
+                        .background(.primaryBackground)
                         .cornerRadius(8)
                     }
                     
@@ -109,7 +125,6 @@ struct CreateGroupDrawer: View {
             }
             
             Spacer()
-            
             // Create Group Button
             Button(action: createGroup) {
                 Text("Create Group")
@@ -117,14 +132,24 @@ struct CreateGroupDrawer: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color(.systemBlue))
+                    .foregroundColor(.primaryBackground)
+                    .background(.secondaryBackground)
                     .cornerRadius(12)
             }
         }
         .padding()
+                .overlay(
+            ErrorCard(
+                message: errorMessage,
+                isVisible: showError,
+                onDismiss: { showError = false }
+            )
+        )
         .sheet(isPresented: $showInviteMemberDrawer) {
-            InviteMemberDrawer { contacts in
+            DrawerModal(isOpen: $showInviteMemberDrawer) {
+                     InviteMemberDrawer { contacts in
                 selectedContacts = contacts
+            }
             }
         }
     }
@@ -139,4 +164,3 @@ struct Contact: Identifiable {
 #Preview {
     CreateGroupDrawer()
 }
-    

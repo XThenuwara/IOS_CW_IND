@@ -9,6 +9,6 @@ import SwiftUI
 
 extension View {
     func withShadow() -> some View {
-        self.shadow(color: .gray.opacity(0.2), radius: 8, x: 0, y: 4)
+        self.shadow(color: .lineBackground.opacity(0.2), radius: 8, x: 0, y: 4)
     }
 }

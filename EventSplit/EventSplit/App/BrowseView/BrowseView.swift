@@ -108,8 +108,11 @@ struct BrowseView: View {
                     
                     LazyVStack(spacing: 16) {
                         ForEach(eventModel.eventStore, id: \.id) { event in
-                            EventCard(event: event)
-                                .padding(.horizontal)
+                           NavigationLink(destination: EventView(event: event)) {
+                                    EventCard(event: event)
+                                        .padding(.horizontal)
+                                }
+                                .buttonStyle(PlainButtonStyle())
                         }
                     }
                 }
@@ -127,10 +130,15 @@ struct BrowseView: View {
         .navigationBarHidden(true)
         .sheet(isPresented: $showFilterSheet) {
             NavigationView {
-                FilterEventsDrawer(selectedRadius: $selectedLocation)
-                    .navigationTitle("Set Search Area")
+                FilterEventsDrawer(
+                    selectedRadius: $selectedLocation,
+                    selectedType: $selectedType,
+                    startDate: $startDate,
+                    endDate: $endDate
+                )
+                    .navigationTitle("Filters")
                     .navigationBarItems(
-                        trailing: Button("Done") {
+                        trailing: Button("Apply") {
                             showFilterSheet = false
                             updateFilteredEvents()
                         }

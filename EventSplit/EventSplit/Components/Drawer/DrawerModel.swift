@@ -36,7 +36,7 @@ struct DrawerModal<Content: View>: View {
             // Drawer Content
             content
                 .frame(maxWidth: .infinity)
-                .background(Color.white)
+                .background(Color.primaryBackground)
                 .cornerRadius(20)
                 
         }

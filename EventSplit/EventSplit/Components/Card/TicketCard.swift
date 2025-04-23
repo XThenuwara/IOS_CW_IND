@@ -4,7 +4,6 @@
 //
 //  Created by Yasas Hansaka Thenuwara on 2025-04-16.
 //
-//
 import SwiftUI
 
 struct TicketCard: View {
@@ -16,13 +15,7 @@ struct TicketCard: View {
                 Text("Ticket #\(String(ticket.id.uuidString.prefix(6)).uppercased())")
                     .font(.headline)
                 Spacer()
-                Text(ticket.status.capitalized)
-                    .font(.subheadline)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(statusColor.opacity(0.2))
-                    .foregroundColor(statusColor)
-                    .cornerRadius(8)
+                StatusBadge(text: ticket.status.capitalized)
             }
             
             Divider()
@@ -50,9 +43,10 @@ struct TicketCard: View {
                 .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color.white)
+        .background(Color.highLightBackground)
         .cornerRadius(12)
-        .shadow(radius: 2)
+        .withShadow()
+        .withBorder()
     }
     
     private var statusColor: Color {

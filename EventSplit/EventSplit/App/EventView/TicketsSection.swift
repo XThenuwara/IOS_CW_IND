@@ -6,19 +6,27 @@
 //
 import SwiftUI
 
+class TicketSelectionState: ObservableObject {
+    @Published var selectedTicket: TicketDTO?
+}
+
 struct TicketsSection: View {
     let event: EventEntity
+    let outingId: UUID?
+    let showGroupOutingSection: Bool
+    let onPaymentSuccessful: () -> Void
     @State private var showPaymentView = false
     @State private var showCreateOuting = false
-    @State private var selectedTicket: TicketDTO = TicketDTO(
-        id: UUID().uuidString,
-        name: "",
-        price: 5000.0,
-        totalQuantity: 1,
-        soldQuantity: 0
-    )
+    @StateObject private var ticketSelectionState = TicketSelectionState()
     
     @State private var processedTickets: [TicketDTO] = []
+    
+    init(event: EventEntity, outingId: UUID? = nil, showGroupOutingSection: Bool = true, onPaymentSuccessful: @escaping () -> Void) {
+        self.event = event
+        self.outingId = outingId
+        self.showGroupOutingSection = showGroupOutingSection
+        self.onPaymentSuccessful = onPaymentSuccessful
+    }
     
     private func loadTickets() {
         if let ticketData = event.ticketTypes?.data(using: .utf8) {
@@ -63,7 +71,7 @@ struct TicketsSection: View {
                         Spacer()
                         
                         Button(action: {
-                            selectedTicket = ticket
+                            ticketSelectionState.selectedTicket = ticket
                             showPaymentView = true
                         }) {
                             HStack {
@@ -90,24 +98,26 @@ struct TicketsSection: View {
             Divider()
             
             // Group Outing Section
-            VStack(spacing: 8) {
-                Text("Going with friends? Create a group outing to split expenses and manage your trip together!")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                
-                Button(action: {
-                    showCreateOuting = true
-                }) {
-                    HStack {
-                        Image(systemName: "person.3")
-                        Text("Create Group Outing")
+            if showGroupOutingSection {
+                VStack(spacing: 8) {
+                    Text("Going with friends? Create a group outing to split expenses and manage your trip together!")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                    
+                    Button(action: {
+                        showCreateOuting = true
+                    }) {
+                        HStack {
+                            Image(systemName: "person.3")
+                            Text("Create Group Outing")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .foregroundColor(.secondaryBackground)
+                        .background(Color.primaryBackground)
+                        .cornerRadius(12)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .foregroundColor(.secondaryBackground)
-                    .background(Color.primaryBackground)
-                    .cornerRadius(12)
                 }
             }
         }
@@ -121,7 +131,21 @@ struct TicketsSection: View {
         }
         .sheet(isPresented: $showPaymentView) {
             DrawerModal(isOpen: $showPaymentView) {
-                PaymentView(event: event, ticket: selectedTicket)
+                PaymentView(
+                    event: event,
+                    ticket: ticketSelectionState.selectedTicket ?? TicketDTO(
+                        id: UUID().uuidString,
+                        name: "",
+                        price: 5000.0,
+                        totalQuantity: 1,
+                        soldQuantity: 0
+                    ),
+                    outingId: outingId,
+                    onPaymentSuccess: {
+                        loadTickets()
+                        onPaymentSuccessful()
+                    }
+                )
             }
         }
         .sheet(isPresented: $showCreateOuting) {

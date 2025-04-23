@@ -32,18 +32,18 @@ struct Tabbar: View {
                     VStack(spacing: 4) {
                         Image(systemName: tab.icon)
                             .font(.system(size: 14))
-                            .foregroundColor(selectedTab == index ? .black : .gray)
+                            .foregroundColor(selectedTab == index ? .secondaryBackground : .gray)
                         
                         Text(tab.label)
                             .font(.system(size: 12))
-                            .foregroundColor(selectedTab == index ? .black : .gray)
+                            .foregroundColor(selectedTab == index ? .secondaryBackground : .gray)
                     }
                 }
                 .frame(maxWidth: .infinity)
             }
         }
         .padding(.vertical, 14)
-        .background(Color.white)
+        .background(.highLightBackground)
         .cornerRadius(100)
         .withShadow()
         .padding(.horizontal)

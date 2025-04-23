@@ -43,7 +43,7 @@ struct ContentView: View {
                         }
                     }
                     .navigationDestination(for: OutingEntity.self) { outing in
-                        OutingView(outing: outing)
+                        OutingView(initialOuting: outing)
                     }
                 }
             } else {
@@ -73,7 +73,7 @@ struct ContentView: View {
                 }
             }
         }
-        .background(Color.primaryBackground)
+        .background(.primaryBackground)
     }
 }
 

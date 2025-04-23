@@ -21,8 +21,8 @@ struct ExpenseViewDrawer: View {
     init(users: [UserDTO], activity: ActivityDTO) {
         self.users = users
         self.activity = activity
-        let outingCoreDataModel = OutingCoreDataModel()
-        self.outingService = OutingService(coreDataModel: outingCoreDataModel)
+        let outingCoreDataModel =  OutingCoreDataModel.shared
+        self.outingService = OutingService(coreDataModel: OutingCoreDataModel.shared)
     }
     
     private var paidByUser: UserDTO? {
@@ -123,24 +123,25 @@ private struct ExpenseHeaderSection: View {
     let paidByUser: UserDTO?
     
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(alignment: .leading, spacing: 24) {
             // Header
-            VStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text(activity.title)
                     .font(.title2)
                     .fontWeight(.bold)
+                    .lineLimit(2)
                 
                 Text("$\(String(format: "%.2f", activity.amount))")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.accentColor)
+                    .font(.system(size: 34, weight: .bold))
+                    .foregroundColor(.secondaryBackground)
             }
-            .padding(.top)
+            .padding(.horizontal)
             
             // Paid By Section
             VStack(alignment: .leading, spacing: 12) {
                 Text("Paid By")
                     .font(.headline)
+                    .foregroundColor(.secondary)
                 
                 HStack(spacing: 12) {
                     Circle()
@@ -152,22 +153,36 @@ private struct ExpenseHeaderSection: View {
                                 .foregroundColor(.white)
                         )
                     
-                    VStack(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(paidByUser?.name ?? "Unknown")
                             .font(.subheadline)
                             .fontWeight(.medium)
-                        Text("Paid on \(activity.createdAt ?? "Unknown date")")
+                        Text("Paid on \(formatDate(activity.createdAt))")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
+                    
+                    Spacer()
                 }
                 .padding()
-                .background(Color.white)
+                .background(Color(.systemBackground))
                 .cornerRadius(12)
+                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal)
         }
+    }
+    
+    private func formatDate(_ dateString: String?) -> String {
+        guard let dateString = dateString,
+              let date = ISO8601DateFormatter().date(from: dateString) else {
+            return "Unknown date"
+        }
+        
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 }
 

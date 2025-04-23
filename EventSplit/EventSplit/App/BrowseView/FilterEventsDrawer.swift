@@ -11,11 +11,14 @@ struct FilterEventsDrawer: View {
     @Environment(\.dismiss) var dismiss
     @StateObject private var locationManager = LocationManager()
     @Binding var selectedRadius: String
-    
+    @Binding var selectedType: EventTypeEnum?
+    @Binding var startDate: Date?
+    @Binding var endDate: Date?
     @StateObject private var mapState = MapState()
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
+            //Spacer()
             // Map View
             Map(coordinateRegion: $mapState.region, showsUserLocation: true)
                 .frame(height: 300)
@@ -37,12 +40,31 @@ struct FilterEventsDrawer: View {
                         selectedRadius = String(Int(newValue))
                         mapState.updateRegion(radius: newValue)
                     }
-                ), in: 1...500, step: 1)
+                ), in: 1...5000, step: 10)
                 .tint(.blue)
             }
             .padding()
             .background(Color.white)
             .cornerRadius(12)
+            
+            HStack {
+                // Date Range Filter
+                DateRangeFilter(
+                    startDate: $startDate,
+                    endDate: $endDate
+                ) {}
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(12)
+                
+                Spacer()
+                
+                // Event Type Filter
+                EventTypeFilter(selectedType: $selectedType) {}
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(12)
+            }
             
             Spacer()
         }
@@ -51,6 +73,7 @@ struct FilterEventsDrawer: View {
             guard let location = location else { return }
             mapState.setInitialLocation(location.coordinate)
         }
+        .background(.primaryBackground)
     }
 }
 
