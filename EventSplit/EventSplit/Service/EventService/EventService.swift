@@ -112,7 +112,7 @@ class EventService {
     }
     
     // Purchase Tickets
-    func purchaseTickets(eventId: UUID, tickets: [PurchaseTicketItem], paymentMethod: String, completion: @escaping (Result<PurchasedTicketsDTO, Error>) -> Void) {
+    func purchaseTickets(eventId: UUID, tickets: [PurchaseTicketItem], paymentMethod: String, outingId: UUID? = nil, completion: @escaping (Result<PurchasedTicketsCreateDTO, Error>) -> Void) {
         let purchaseURL = serverURL.appendingPathComponent("\(eventId.uuidString)/purchase")
         
         guard let token = AuthCoreDataModel.shared.authEntity?.accessToken else {
@@ -123,6 +123,7 @@ class EventService {
         
         let purchaseData = PurchaseTicketsDTO(
             eventId: eventId,
+            outingId: outingId,
             tickets: tickets,
             paymentMethod: paymentMethod
         )
@@ -142,7 +143,7 @@ class EventService {
         case .success(let request):
             URLSession.shared.dataTask(with: request) { data, response, error in
                 print("Purchase request sent to: \(purchaseURL)")
-                NetworkHelper.handleResponse(data, response, error) { (result: Result<PurchasedTicketsDTO, AuthError>) in
+                NetworkHelper.handleResponse(data, response, error) { (result: Result<PurchasedTicketsCreateDTO, AuthError>) in
                     switch result {
                     case .success(let purchaseDTO):
                         print("Purchase successful for event: \(eventId)")
@@ -163,6 +164,7 @@ class EventService {
         let purchasedURL = serverURL.appendingPathComponent("\(eventId.uuidString)/purchased-tickets")
         
         guard let token = AuthCoreDataModel.shared.authEntity?.accessToken else {
+            print("❌ [EventService.getPurchasedTickets] No access token available")
             completion(.failure(AuthError.noToken))
             return
         }
@@ -176,13 +178,16 @@ class EventService {
                 NetworkHelper.handleResponse(data, response, error) { (result: Result<[PurchasedTicketsDTO], AuthError>) in
                     switch result {
                     case .success(let purchasedTickets):
+                        print("✅ [EventService.getPurchasedTickets] Successfully fetched \(purchasedTickets.count) tickets for event: \(eventId)")
                         completion(.success(purchasedTickets))
                     case .failure(let error):
+                        print("❌ [EventService.getPurchasedTickets] Failed to fetch tickets: \(error.localizedDescription)")
                         completion(.failure(error))
                     }
                 }
             }.resume()
         case .failure(let error):
+            print("❌ [EventService.getPurchasedTickets] Failed to create request: \(error.localizedDescription)")
             completion(.failure(error))
         }
     }
@@ -191,6 +196,7 @@ class EventService {
         let purchasedURL = serverURL.appendingPathComponent("purchased-tickets/all")
         
         guard let token = AuthCoreDataModel.shared.authEntity?.accessToken else {
+            print("❌ [EventService.getAllPurchasedTickets] No access token available")
             completion(.failure(AuthError.noToken))
             return
         }
@@ -204,13 +210,16 @@ class EventService {
                 NetworkHelper.handleResponse(data, response, error) { (result: Result<[PurchasedTicketsWithEventDTO], AuthError>) in
                     switch result {
                     case .success(let purchasedTickets):
+                        print("✅ [EventService.getAllPurchasedTickets] Successfully fetched \(purchasedTickets.count) tickets")
                         completion(.success(purchasedTickets))
                     case .failure(let error):
+                        print("❌ [EventService.getAllPurchasedTickets] Failed to fetch tickets: \(error.localizedDescription)")
                         completion(.failure(error))
                     }
                 }
             }.resume()
         case .failure(let error):
+            print("❌ [EventService.getAllPurchasedTickets] Failed to create request: \(error.localizedDescription)")
             completion(.failure(error))
         }
     }

@@ -29,7 +29,7 @@ class OutingCoreDataModel: ObservableObject {
     }
 
     func refreshOutingsFromServer() {
-        outingStore.removeAll()
+        // outingStore.removeAll()
         serverModel.fetchOutings()
     }
     
@@ -48,12 +48,7 @@ class OutingCoreDataModel: ObservableObject {
         ) { result in
             switch result {
             case .success(let outingDTO):
-                DispatchQueue.main.async {
-                    if let outingEntity = self.serverModel.convertToOutingEntity(outingDTO: outingDTO, context: self.container.viewContext) {
-                        self.outingStore.append(outingEntity)
-                        self.saveData()
-                    }
-                }
+                print("Outing created successfully")
             case .failure(let error):
                 print("Error creating outing: \(error)")
             }

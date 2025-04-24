@@ -5,6 +5,7 @@
 //  Created by Yasas Hansaka Thenuwara on 2025-04-12.
 //
 import EventKit
+import EventKitUI
 
 class CalendarService {
     static let shared = CalendarService()
@@ -73,6 +74,29 @@ class CalendarService {
         // Check if any event matches our title
         return existingEvents.contains { event in
             event.title.lowercased() == title.lowercased()
+        }
+    }
+    
+    func openEventInCalendar(title: String, startDate: Date) {
+        let eventStore = EKEventStore()
+        
+        let predicate = eventStore.predicateForEvents(
+            withStart: Calendar.current.date(byAdding: .hour, value: -1, to: startDate) ?? startDate,
+            end: Calendar.current.date(byAdding: .hour, value: 1, to: startDate) ?? startDate,
+            calendars: nil
+        )
+        
+        let events = eventStore.events(matching: predicate)
+        if let event = events.first(where: { $0.title == title }) {
+            let eventViewController = EKEventViewController()
+            eventViewController.event = event
+            
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first,
+               let rootViewController = window.rootViewController {
+                let navigationController = UINavigationController(rootViewController: eventViewController)
+                rootViewController.present(navigationController, animated: true)
+            }
         }
     }
 }

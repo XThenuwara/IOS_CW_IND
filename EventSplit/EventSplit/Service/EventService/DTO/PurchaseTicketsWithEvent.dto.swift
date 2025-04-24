@@ -3,6 +3,7 @@ import Foundation
 struct PurchasedTicketsWithEventDTO: Codable {
     let id: UUID
     let eventId: UUID
+    let outingId: UUID?
     let userId: UUID
     let ticketType: String
     let quantity: Int

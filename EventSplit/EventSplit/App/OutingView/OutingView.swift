@@ -7,98 +7,133 @@
 import SwiftUI
 
 struct OutingView: View {
-    let outing: OutingEntity
+    let initialOuting: OutingEntity
+    private let eventService = EventService(coreDataModel: EventCoreDataModel())
+    private let outingService: OutingService
     @StateObject private var outingCoreDataModel = OutingCoreDataModel()
     @State private var showAddExpense = false
     @State private var users: [UserDTO] = []
+    @State private var outing: OutingEntity
     
-    init(outing: OutingEntity) {
-        // print("[OutingView] Outing ID:", outing)
-        self.outing = outing
+    
+    init(initialOuting: OutingEntity) {
+        print("[OutingView] Outing ID:", initialOuting)
+        self.outing = initialOuting
+        self.outingService = OutingService(coreDataModel: OutingCoreDataModel())
+        self.initialOuting = initialOuting
+        _outing = State(initialValue: initialOuting)
     }
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("\(outing.title ?? "Outing")")
-                            .font(.system(size: 28, weight: .bold))
-                        Text("Discover events happening in your area")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gray)
-                    }
-                    
-                    
-                    Spacer()
-                    
-                    Button(action: { showAddExpense = true }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 14))
-                            Text("Add Expense")
-                                .font(.subheadline)
-                                .fontWeight(.bold)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color.primary)
-                        .foregroundColor(Color.primaryBackground)
-                        .clipShape(Capsule())
-                    }
-                }
-                .padding()
-                
-                // Calendar Check
-                if let eventData = outing.outingEvent?.event {
-                    OutingEventCard(outingEntity: outing,eventData: eventData)
-                }
-                
-                // Calendar Check
-                OutingCalendarCheck(
-                    title: outing.title ?? "",
-                    description: outing.desc ?? "",
-                    startDate: outing.outingEvent?.event?.eventDate
-                )
-                
-                // Expenses Section
-                OutingExpensesSection(
-                    users: users,
-                    activities: getActivities(),
-                    totalBudget: outing.totalExpense,
-                    yourShare: outing.due,
-                    onAddExpense: { showAddExpense = true }
-                )
-                
-                
-                // Owes Section
-                OutingOwesSection(
-                    users: users,
-                    participants: getParticipants(),
-                    debts: (outing.debts as? Set<DebtEntity>)?.map { $0 } ?? [],
-                    yourShare: outing.due
-                )
-                
-                // Participants Section
-                ParticipantsSection(
-                    users: users,
-                    activities: getActivities()
-                )
-            }
-            .padding(.bottom, 100)
-            
-            Spacer()
+            outingContent
         }
         .sheet(isPresented: $showAddExpense) {
             DrawerModal(isOpen: $showAddExpense){
-                AddExpenseDrawer(outing: outing)
+                AddExpenseDrawer(outing: outing, onSuccess: refreshOuting)
             }
         }
         .onAppear{
             extractUsers()
+            refreshOuting()
         }
         .background(Color.primaryBackground)
+    }
+    
+    private var outingContent: some View {
+        VStack(spacing: 20) {
+            outingHeader
+                outingEventSection
+                outingCalendarSection
+            outingExpensesSection
+            outingOwesSection
+            outingParticipantsSection
+            
+            Spacer()
+        }
+        .padding(.bottom, 100)
+    }
+    
+    private var outingHeader: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("\(outing.title ?? "Outing")")
+                    .font(.system(size: 28, weight: .bold))
+                Text("Discover events happening in your area")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+            }
+            
+            Spacer()
+            
+            // Button(action: refreshOuting) {
+            //     Image(systemName: "arrow.clockwise")
+            //         .font(.system(size: 14))
+            // }
+            // .padding(.trailing, 8)
+            
+            Button(action: { showAddExpense = true }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 14))
+                    Text("Add Expense")
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color.primary)
+                .foregroundColor(Color.primaryBackground)
+                .clipShape(Capsule())
+            }
+        }
+        .padding()
+    }
+    
+    private var outingEventSection: some View {
+        Group {
+            if let eventData = outing.outingEvent?.event {
+                OutingEventCard(
+                    outingEntity: outing,
+                    eventData: eventData,
+                    tickets: getTickets()
+                )
+            }
+        }
+    }
+    
+    private var outingCalendarSection: some View {
+        OutingCalendarCheck(
+            title: outing.title ?? "",
+            description: outing.desc ?? "",
+            startDate: outing.outingEvent?.event?.eventDate ?? Date()
+        )
+    }
+    
+    private var outingExpensesSection: some View {
+        OutingExpensesSection(
+            users: users,
+            activities: getActivities(),
+            totalBudget: outing.totalExpense,
+            yourShare: outing.due,
+            onAddExpense: { showAddExpense = true }
+        )
+    }
+    
+    private var outingOwesSection: some View {
+        OutingOwesSection(
+            users: users,
+            participants: getParticipants(),
+            debts: (outing.debts as? Set<DebtEntity>)?.map { $0 } ?? [],
+            yourShare: outing.due
+        )
+    }
+    
+    private var outingParticipantsSection: some View {
+        ParticipantsSection(
+            users: users,
+            activities: getActivities()
+        )
     }
     
     private func getActivities() -> [ActivityDTO] {
@@ -109,7 +144,11 @@ struct OutingView: View {
         
         do {
             let activities = try JSONDecoder().decode([ActivityDTO].self, from: data)
-            return activities
+            return activities.sorted { activity1, activity2 in
+                let date1 = DateUtils.shared.parseISO8601Date(activity1.createdAt) ?? Date.distantPast
+                let date2 = DateUtils.shared.parseISO8601Date(activity2.createdAt) ?? Date.distantPast
+                return date1 > date2
+            }
         } catch {
             print("[OutingView] Error decoding activities:", error)
             return []
@@ -136,6 +175,26 @@ struct OutingView: View {
             )
         }
         return participants
+    }
+    
+    private func getTickets() -> [PurchasedTicketsWithEventDTO] {
+        guard let outingId = outing.id else { return [] }
+        
+        var outingTickets: [PurchasedTicketsWithEventDTO] = []
+        let semaphore = DispatchSemaphore(value: 0)
+        
+        eventService.getAllPurchasedTickets { result in
+            switch result {
+            case .success(let tickets):
+                outingTickets = tickets.filter { $0.outingId == outingId }
+            case .failure(let error):
+                print("❌ Error fetching tickets:", error)
+            }
+            semaphore.signal()
+        }
+        
+        semaphore.wait()
+        return outingTickets
     }
     
     private func extractUsers() {
@@ -205,6 +264,28 @@ struct OutingView: View {
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: date)
     }
+    
+    private func refreshOuting() {
+        guard let outingId = outing.id?.uuidString else { return }
+        
+        outingService.getOuting(outingId: outingId) { result in
+            switch result {
+            case .success(let outingDTO):
+                DispatchQueue.main.async {
+                    if let refreshedOuting = self.outingService.convertToOutingEntity(
+                        outingDTO: outingDTO,
+                        context: self.outingCoreDataModel.container.viewContext
+                    ) {
+                        print("🔄 Refreshed Outing:", refreshedOuting) // Add this print statement
+                        self.outing = refreshedOuting
+                        self.extractUsers()
+                    }
+                }
+            case .failure(let error):
+                print("❌ Failed to refresh outing:", error)
+            }
+        }
+    }
 }
 
 
@@ -213,7 +294,7 @@ struct OutingView_Previews: PreviewProvider {
     static var previews: some View {
         let outing = createPreviewOuting()
         NavigationView {
-            OutingView(outing: outing)
+            OutingView(initialOuting: outing)
         }
     }
     

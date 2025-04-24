@@ -7,9 +7,11 @@
 import SwiftUI
 
 struct OutingEventCard: View {
+    @State private var showTicketDrawer = false
     let outingEntity: OutingEntity
     let eventData: EventEntity
-
+    let tickets: [PurchasedTicketsWithEventDTO] 
+    
     var body: some View {
         VStack(spacing: 16) {
             HStack {
@@ -32,13 +34,16 @@ struct OutingEventCard: View {
                 EventInfoRow(icon: "clock", text: formatTime(eventData.eventDate))
                 
                 HStack {
-                    EventInfoRow(icon: "ticket", text: "3 Tickets")
+                    EventInfoRow(icon: "ticket", text: "\(tickets.count) Tickets")
                     Spacer()
-                    Button(action: {}) {
+                    
+                    Button(action: {
+                        showTicketDrawer = true
+                    }) {
                         HStack(spacing: 4) {
                             Text("View")
                                 .font(.subheadline)
-                                .fontWeight(.bold)
+                                .fontWeight(.semibold)
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
@@ -50,11 +55,20 @@ struct OutingEventCard: View {
             }
         }
         .padding()
-        .background(Color(UIColor.systemBackground))
+        .background(.highLightBackground)
         .cornerRadius(16)
         .withShadow()
         .withBorder()
         .padding(.horizontal)
+        .sheet(isPresented: $showTicketDrawer) {
+            DrawerModal(isOpen: $showTicketDrawer) {
+                EventTicketDrawer(
+                    event: eventData,
+                    isOpen: $showTicketDrawer,
+                    outingId: outingEntity.id
+                )
+            }
+        }
     }
     
     private func formatDate(_ date: Date?) -> String {

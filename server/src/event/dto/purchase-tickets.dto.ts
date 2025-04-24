@@ -14,6 +14,10 @@ export class PurchaseTicketsDto {
     @IsUUID()
     eventId: string;
 
+    @IsUUID()
+    @IsOptional()
+    outingId: string;
+
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => TicketPurchaseItem)

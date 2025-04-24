@@ -82,4 +82,11 @@ export class OutingController {
   async getActivityImages(@Param('id') activityId: string) {
     return await this.outingService.getImagesForActivity(activityId);
   }
+
+  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Patch('debt/:id/status')
+  @HttpCode(HttpStatus.OK)
+  async updateDebtStatus(@Param('id') debtId: string, @Body('status') status: 'pending' | 'paid') {
+    return await this.outingService.updateDebtStatus(debtId, status);
+  }
 }

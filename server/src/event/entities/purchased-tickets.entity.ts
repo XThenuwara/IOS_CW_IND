@@ -21,6 +21,9 @@ export class PurchasedTickets {
     @Column()
     eventId: string;
 
+    @Column({ nullable: true })
+    outingId: string;
+
     @Column()
     ticketType: string;
 

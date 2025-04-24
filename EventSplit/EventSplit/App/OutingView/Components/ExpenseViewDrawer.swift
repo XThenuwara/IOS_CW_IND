@@ -22,7 +22,7 @@ struct ExpenseViewDrawer: View {
         self.users = users
         self.activity = activity
         let outingCoreDataModel =  OutingCoreDataModel.shared
-        self.outingService = OutingService(coreDataModel: OutingCoreDataModel.shared)
+        self.outingService = OutingService(coreDataModel: OutingCoreDataModel())
     }
     
     private var paidByUser: UserDTO? {

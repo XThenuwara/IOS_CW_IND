@@ -1,5 +1,7 @@
+
 import Foundation
 import CoreData
+import SwiftUI
 
 struct OutingDTO: Codable {
     let id: UUID
@@ -84,6 +86,33 @@ class OutingService {
             }
         }.resume()
     }
+
+     func getOuting(outingId: String, completion: @escaping (Result<OutingDTO, Error>) -> Void) {
+        let outingURL = serverURL.appendingPathComponent(outingId)
+        let request = createAuthenticatedRequest(url: outingURL)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌[OutingService.getOuting] Network error: \(error)")
+                completion(.failure(error))
+                return
+            }
+            
+            guard let data = data else {
+                print("❌[OutingService.getOuting] No data received")
+                completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                return
+            }
+            
+            do {
+                let outingDTO = try JSONDecoder().decode(OutingDTO.self, from: data)
+                completion(.success(outingDTO))
+            } catch {
+                print("❌[OutingService.getOuting] Decoding error: \(error)")
+                completion(.failure(error))
+            }
+        }.resume()
+    }
     
     func createOuting(
         title: String,
@@ -128,9 +157,6 @@ class OutingService {
             do {
                 let outingDTO = try JSONDecoder().decode(OutingDTO.self, from: data)
                 DispatchQueue.main.async {
-                    if let outingEntity = self?.convertToOutingEntity(outingDTO: outingDTO, context: self?.coreDataModel?.container.viewContext ?? NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)) {
-                        self?.coreDataModel?.outingStore.append(outingEntity)
-                    }
                     completion(.success(outingDTO))
                 }
             } catch {
@@ -149,7 +175,7 @@ class OutingService {
         paidById: String,
         outingId: String,
         references: [String]? = nil,
-        completion: @escaping (Result<Bool, Error>) -> Void
+        completion: @escaping (Result<ActivityDTO, Error>) -> Void
     ) {
         
         let activityURL = serverURL.appendingPathComponent("activity")
@@ -181,7 +207,7 @@ class OutingService {
             }
             
             if let httpResponse = response as? HTTPURLResponse {
-                print("❌ [OutingService.AddActivity] Response Status Code: \(httpResponse.statusCode)")
+                print("📡 [OutingService.AddActivity] Response Status Code: \(httpResponse.statusCode)")
             }
             
             guard let data = data else {
@@ -190,19 +216,136 @@ class OutingService {
                 return
             }
             
-            if let httpResponse = response as? HTTPURLResponse,
-               (200...299).contains(httpResponse.statusCode) {
-                print("✅ Activity added successfully")
+            do {
+                let activityResponse = try JSONDecoder().decode(ActivityResponse.self, from: data)
+                let activityDTO = ActivityDTO(
+                    id: activityResponse.id,
+                    title: activityResponse.title,
+                    description: activityResponse.description,
+                    amountString: String(activityResponse.amount),
+                    paidById: activityResponse.paidById,
+                    participants: activityResponse.participants,
+                    references: activityResponse.references,
+                    createdAt: activityResponse.createdAt,
+                    updatedAt: activityResponse.updatedAt
+                )
                 DispatchQueue.main.async {
-                    completion(.success(true))
+                    completion(.success(activityDTO))
                 }
-            } else {
-                completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Server returned error status"])))
+            } catch {
+                print("❌[OutingService.AddActivity] Decoding error: \(error)")
+                completion(.failure(error))
             }
         }.resume()
     }
     
+    func uploadActivityImage(activityId: String, image: UIImage, completion: @escaping (Result<Bool, Error>) -> Void) {
+        let imageURL = serverURL.appendingPathComponent("activity/\(activityId)/image")
+        var request = createAuthenticatedRequest(url: imageURL, method: "POST")
+        
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert image to data"])))
+            return
+        }
+        
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"image\"; filename=\"image.jpg\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        
+        request.httpBody = body
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌[OutingService.uploadActivityImage] Network error: \(error)")
+                completion(.failure(error))
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse,
+               (200...299).contains(httpResponse.statusCode) {
+                print("✅ Image uploaded successfully")
+                completion(.success(true))
+            } else {
+                completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to upload image"])))
+            }
+        }.resume()
+    }
     
+    func getActivityImages(activityId: String, completion: @escaping (Result<[URL], Error>) -> Void) {
+        let imageURL = serverURL.appendingPathComponent("activity/\(activityId)/images")
+        let request = createAuthenticatedRequest(url: imageURL)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌[OutingService.getActivityImages] Network error: \(error)")
+                completion(.failure(error))
+                return
+            }
+            
+            guard let data = data else {
+                print("❌[OutingService.getActivityImages] No data received")
+                completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                return
+            }
+            
+            do {
+                let response = try JSONDecoder().decode(ImageResponse.self, from: data)
+                let urls = response.images.compactMap { URL(string: $0) }
+                print("✅ Successfully fetched \(urls.count) images")
+                completion(.success(urls))
+            } catch {
+                print("❌[OutingService.getActivityImages] Decoding error: \(error)")
+                completion(.failure(error))
+            }
+        }.resume()
+    }
+    
+
+    func updateDebtStatus(debtId: String, status: String, completion: @escaping (Result<DebtDTO, Error>) -> Void) {
+        let debtURL = serverURL.appendingPathComponent("debt/\(debtId)/status")
+        var request = createAuthenticatedRequest(url: debtURL, method: "PATCH")
+        
+        let statusData = ["status": status]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: statusData)
+        } catch {
+            print("❌[OutingService.updateDebtStatus] Failed to serialize request body: \(error)")
+            completion(.failure(error))
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌[OutingService.updateDebtStatus] Network error: \(error)")
+                completion(.failure(error))
+                return
+            }
+            
+            guard let data = data else {
+                print("❌[OutingService.updateDebtStatus] No data received")
+                completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                return
+            }
+            
+            do {
+                let debtDTO = try JSONDecoder().decode(DebtDTO.self, from: data)
+                DispatchQueue.main.async {
+                    completion(.success(debtDTO))
+                }
+            } catch {
+                print("❌[OutingService.updateDebtStatus] Decoding error: \(error)")
+                completion(.failure(error))
+            }
+        }.resume()
+    }
+
     
     // Helper Methods
     func replaceOutingStore(with outingDTOs: [OutingDTO]) {
@@ -218,7 +361,12 @@ class OutingService {
         
         print("outingStore replaced with \(coreDataModel.outingStore.count) outings")
     }
-    
+
+        
+
+
+
+    // Helper Methods
     func convertToOutingEntity(outingDTO: OutingDTO, context: NSManagedObjectContext) -> OutingEntity? {
         let outingEntity = OutingEntity(context: context)
         
@@ -268,20 +416,21 @@ class OutingService {
             print("[OutingService] Converting \(debts.count) debts from DTO")
             var debtEntities = Set<DebtEntity>()
             
-            for debtDTO in debts {
-                let debtEntity = DebtEntity(context: context)
-                debtEntity.id = debtDTO.id
-                debtEntity.fromUserId = debtDTO.fromUserId
-                debtEntity.toUserId = debtDTO.toUserId
-                debtEntity.amount = Double(debtDTO.amount) ?? 0.0
-                debtEntity.status = debtDTO.status.rawValue
-                debtEntity.outing = outingEntity
-                debtEntities.insert(debtEntity)
+            context.performAndWait {
+                for debtDTO in debts {
+                    let debtEntity = DebtEntity(context: context)
+                    debtEntity.id = debtDTO.id
+                    debtEntity.fromUserId = debtDTO.fromUserId
+                    debtEntity.toUserId = debtDTO.toUserId
+                    debtEntity.amount = Double(debtDTO.amount) ?? 0.0
+                    debtEntity.status = debtDTO.status.rawValue
+                    debtEntity.outing = outingEntity
+                    debtEntities.insert(debtEntity)
+                }
                 
-                // print("[OutingService] 💰 Debt Details - ID: \(debtDTO.id), From: \(debtDTO.fromUserId), To: \(debtDTO.toUserId), Amount: \(debtDTO.amount), Status: \(debtDTO.status.rawValue)")
+                outingEntity.debts = NSSet(set: debtEntities)
             }
             
-            outingEntity.debts = NSSet(set: debtEntities)
             print("[OutingService] Created \(debtEntities.count) DebtEntities and assigned to OutingEntity")
         }
         
@@ -293,6 +442,11 @@ class OutingService {
         
         return outingEntity
     }
+
+}
+
+struct ImageResponse: Codable {
+    let images: [String]
 }
 
 

@@ -34,7 +34,7 @@ struct AddExpenseDrawer: View {
         self.outing = outing
         self.onSuccess = onSuccess
         let outingCoreDataModel =  OutingCoreDataModel.shared
-        self.outingService = OutingService(coreDataModel: OutingCoreDataModel.shared)
+        self.outingService = OutingService(coreDataModel: OutingCoreDataModel())
         print("[AddExpenseDrawer] Outing ID:", outing.id?.uuidString ?? "nil")
         
         if let currentUser = AuthCoreDataModel.shared.currentUser {

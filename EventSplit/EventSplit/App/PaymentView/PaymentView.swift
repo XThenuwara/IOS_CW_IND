@@ -23,14 +23,23 @@ struct PurchaseTicketDTO: Codable {
 
 struct PaymentView: View {
     let event: EventEntity
-    let ticket: TicketDTO
+    var ticket: TicketDTO
+    let outingId: UUID?
+    let onPaymentSuccess: () -> Void
+    
+    @State private var showError = false
+    @State private var infoMessage = ""
+    @State private var showSuccess = false
+    @State private var buttonState: ActionButtonState = .default
     @StateObject private var eventModel = EventCoreDataModel()
     private let eventService: EventService
     @Environment(\.dismiss) private var dismiss
-
-    init(event: EventEntity, ticket: TicketDTO) {
+    
+    init(event: EventEntity, ticket: TicketDTO, outingId: UUID? = nil, onPaymentSuccess: @escaping () -> Void = {} ) {
         self.event = event
         self.ticket = ticket
+        self.outingId = outingId
+        self.onPaymentSuccess = onPaymentSuccess
         self.eventService = EventService(coreDataModel: EventCoreDataModel())
     }
     
@@ -54,17 +63,21 @@ struct PaymentView: View {
             VStack(spacing: 24) {
                 // Header
                 HStack {
+                    VStack(spacing: 4) {
+                        Text("Purchase Tickets")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondaryBackground)
+                        Text("Complete your secure transaction with our trusted payment gateway")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    Spacer()
                     Button(action: { dismiss() }) {
                         Image(systemName: "xmark")
                             .font(.system(size: 20))
                             .foregroundColor(.secondaryBackground)
                     }
-                    Spacer()
-                    Text("Purchase Tickets")
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.secondaryBackground)
-                    Spacer()
                 }
                 .padding()
                 
@@ -148,25 +161,28 @@ struct PaymentView: View {
                 }
                 .padding(.horizontal)
                 
-                // Pay Button
-                Button(action: processPayment) {
-                    HStack {
-                        if isProcessing {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        } else {
-                            Text("Pay LKR\(String(format: "%.2f", totalAmount))")
-                                .fontWeight(.semibold)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(.secondaryBackground)
-                    .foregroundColor(.primaryBackground)
-                    .cornerRadius(12)
+                if showError {
+                    InfoTile(
+                        message: infoMessage,
+                        isVisible: $showError
+                    )
                 }
-                .disabled(isProcessing)
-                .padding()
+                
+                // Pay Button
+                ActionButton(
+                    title: "Pay LKR\(String(format: "%.2f", totalAmount))",
+                    action: processPayment,
+                    state: buttonState
+                )
+                .padding(.horizontal)
+                
+                Text("By proceeding with the payment, you agree to our terms and conditions. All payments are secure and encrypted.")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                    .padding(.bottom, 32)
+                
             }
         }
         .background(.primaryBackground)
@@ -174,32 +190,42 @@ struct PaymentView: View {
     }
     
     private func processPayment() {
-        isProcessing = true
+        buttonState = .loading
         
         let purchaseTicket = PurchaseTicketItem(
             ticketType: ticket.name,
             quantity: quantity
         )
         
-        eventService.purchaseTickets(
-            eventId: event.id ?? UUID(),
-            tickets: [purchaseTicket],
-            paymentMethod: "CARD",
-            completion: { result in
-                DispatchQueue.main.async {
-                    isProcessing = false
-                    
-                    switch result {
-                    case .success(_):
-                        // Show success message or handle success case
-                        dismiss()
-                    case .failure(let error):
-                        // Handle error case
-                        print("Payment failed: \(error.localizedDescription)")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            eventService.purchaseTickets(
+                eventId: event.id ?? UUID(),
+                tickets: [purchaseTicket],
+                paymentMethod: "CARD",
+                outingId: outingId,
+                completion: { result in
+                    DispatchQueue.main.async {
+                        switch result {
+                        case .success(_):
+                            buttonState = .success
+                            showSuccess = true
+                            infoMessage = "Payment successful!"
+                            onPaymentSuccess()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                dismiss()
+                            }
+                        case .failure(let error):
+                            buttonState = .error
+                            infoMessage = error.localizedDescription
+                            showError = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                buttonState = .default
+                            }
+                        }
                     }
                 }
-            }
-        )
+            )
+        }
     }
 }
 
