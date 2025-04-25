@@ -7,30 +7,38 @@
 import SwiftUI
 
 struct OutingView: View {
-    let initialOuting: OutingEntity
     private let eventService = EventService(coreDataModel: EventCoreDataModel())
-    private let outingService: OutingService
-    @StateObject private var outingCoreDataModel = OutingCoreDataModel()
+    private let outingService = OutingService(coreDataModel: OutingCoreDataModel())
     @State private var showAddExpense = false
     @State private var users: [UserDTO] = []
-    @State private var outing: OutingEntity
+    @State private var outing: OutingDTO
+    @State private var isRefreshing = false
     
-    
-    init(initialOuting: OutingEntity) {
-        print("[OutingView] Outing ID:", initialOuting)
-        self.outing = initialOuting
-        self.outingService = OutingService(coreDataModel: OutingCoreDataModel())
-        self.initialOuting = initialOuting
-        _outing = State(initialValue: initialOuting)
+    init(outing: OutingDTO) {
+        self.outing = outing
+        _outing = State(initialValue: outing)
     }
     
     var body: some View {
         ScrollView {
             outingContent
+                .overlay {
+                    if isRefreshing {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(Color.black.opacity(0.2))
+                    }
+                }
         }
         .sheet(isPresented: $showAddExpense) {
             DrawerModal(isOpen: $showAddExpense){
-                AddExpenseDrawer(outing: outing, onSuccess: refreshOuting)
+                AddExpenseDrawer(outing: outing, onSuccess: {
+                    withAnimation {
+                        refreshOuting()
+                        showAddExpense = false
+                    }
+                })
             }
         }
         .onAppear{
@@ -43,8 +51,18 @@ struct OutingView: View {
     private var outingContent: some View {
         VStack(spacing: 20) {
             outingHeader
-                outingEventSection
-                outingCalendarSection
+            if let event = outing.outingEvents?.first {
+                OutingEventCard(
+                    outing: outing,
+                    eventData: event,
+                    onSuccess: {
+                        withAnimation {
+                            refreshOuting()
+                        }
+                    }
+                )
+            }
+            outingCalendarSection
             outingExpensesSection
             outingOwesSection
             outingParticipantsSection
@@ -57,7 +75,7 @@ struct OutingView: View {
     private var outingHeader: some View {
         HStack {
             VStack(alignment: .leading, spacing: 8) {
-                Text("\(outing.title ?? "Outing")")
+                Text(outing.title)
                     .font(.system(size: 28, weight: .bold))
                 Text("Discover events happening in your area")
                     .font(.system(size: 14))
@@ -66,56 +84,51 @@ struct OutingView: View {
             
             Spacer()
             
-            // Button(action: refreshOuting) {
-            //     Image(systemName: "arrow.clockwise")
-            //         .font(.system(size: 14))
-            // }
-            // .padding(.trailing, 8)
-            
-            Button(action: { showAddExpense = true }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 14))
-                    Text("Add Expense")
-                        .font(.subheadline)
-                        .fontWeight(.bold)
+            HStack(spacing: 8) {
+                // Button(action: refreshOuting) {
+                //     Image(systemName: "arrow.clockwise")
+                //         .font(.system(size: 14))
+                //         .padding(.all, 8)
+                //         .background(.primaryBackground)
+                //         .foregroundColor(.secondaryBackground)
+                //         .clipShape(Circle())
+                //         .rotationEffect(.degrees(isRefreshing ? 360 : 0))
+                //         .animation(isRefreshing ? Animation.linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isRefreshing)
+                // }
+                
+                Button(action: { showAddExpense = true }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 14))
+                        Text("Add Expense")
+                            .font(.subheadline)
+                            .fontWeight(.bold)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color.primary)
+                    .foregroundColor(Color.primaryBackground)
+                    .clipShape(Capsule())
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(Color.primary)
-                .foregroundColor(Color.primaryBackground)
-                .clipShape(Capsule())
             }
         }
         .padding()
     }
     
-    private var outingEventSection: some View {
-        Group {
-            if let eventData = outing.outingEvent?.event {
-                OutingEventCard(
-                    outingEntity: outing,
-                    eventData: eventData,
-                    tickets: getTickets()
-                )
-            }
-        }
-    }
-    
     private var outingCalendarSection: some View {
         OutingCalendarCheck(
-            title: outing.title ?? "",
-            description: outing.desc ?? "",
-            startDate: outing.outingEvent?.event?.eventDate ?? Date()
+            title: outing.title,
+            description: outing.description,
+            startDate: ISO8601DateFormatter().date(from: outing.outingEvents?.first?.event.eventDate ?? "") ?? Date()
         )
     }
     
     private var outingExpensesSection: some View {
         OutingExpensesSection(
             users: users,
-            activities: getActivities(),
-            totalBudget: outing.totalExpense,
-            yourShare: outing.due,
+            activities: outing.activities ?? [],
+            totalBudget: calculateTotalBudget(),
+            yourShare: calculateYourShare(),
             onAddExpense: { showAddExpense = true }
         )
     }
@@ -123,113 +136,34 @@ struct OutingView: View {
     private var outingOwesSection: some View {
         OutingOwesSection(
             users: users,
-            participants: getParticipants(),
-            debts: (outing.debts as? Set<DebtEntity>)?.map { $0 } ?? [],
-            yourShare: outing.due
+            participants: outing.participants,
+            debts: outing.debts ?? [],
+            yourShare: calculateYourShare()
         )
     }
     
     private var outingParticipantsSection: some View {
         ParticipantsSection(
             users: users,
-            activities: getActivities()
+            activities: outing.activities ?? [],
+            outingId: outing.id.uuidString
         )
     }
     
-    private func getActivities() -> [ActivityDTO] {
-        guard let activitiesString = outing.activities,
-              let data = activitiesString.data(using: .utf8) else {
-            return []
-        }
-        
-        do {
-            let activities = try JSONDecoder().decode([ActivityDTO].self, from: data)
-            return activities.sorted { activity1, activity2 in
-                let date1 = DateUtils.shared.parseISO8601Date(activity1.createdAt) ?? Date.distantPast
-                let date2 = DateUtils.shared.parseISO8601Date(activity2.createdAt) ?? Date.distantPast
-                return date1 > date2
-            }
-        } catch {
-            print("[OutingView] Error decoding activities:", error)
-            return []
-        }
-    }
-    
-    private func getParticipants() -> [ParticipantDTO] {
-        let activities = getActivities()
-        var participantIds = Set<String>()
-        
-        activities.forEach { activity in
-            if let paidById = activity.paidById {
-                participantIds.insert(paidById)
-            }
-            activity.participants.forEach { participantIds.insert($0) }
-        }
-        
-        let participants = participantIds.filter { !$0.isEmpty }.map { id in
-            ParticipantDTO(
-                id: id,
-                name: id,
-                email: "",
-                phoneNumber: ""
-            )
-        }
-        return participants
-    }
-    
-    private func getTickets() -> [PurchasedTicketsWithEventDTO] {
-        guard let outingId = outing.id else { return [] }
-        
-        var outingTickets: [PurchasedTicketsWithEventDTO] = []
-        let semaphore = DispatchSemaphore(value: 0)
-        
-        eventService.getAllPurchasedTickets { result in
-            switch result {
-            case .success(let tickets):
-                outingTickets = tickets.filter { $0.outingId == outingId }
-            case .failure(let error):
-                print("❌ Error fetching tickets:", error)
-            }
-            semaphore.signal()
-        }
-        
-        semaphore.wait()
-        return outingTickets
-    }
     
     private func extractUsers() {
-        // Get participants from OutingEntity only
-        let outingParticipants = (try? JSONDecoder().decode([String].self, from: Data(outing.participants?.utf8 ?? "[]".utf8))) ?? []
+        var extractedUsers: [UserDTO] = []
         
-        // Convert to UserDTO objects
-        var extractedUsers: [UserDTO] = outingParticipants.compactMap { id in
-            // Try to parse the string as JSON
-            if let jsonData = id.data(using: .utf8),
-               let userInfo = try? JSONDecoder().decode(UserInfo.self, from: jsonData) {
-                guard let uuid = UUID(uuidString: userInfo.id) else {
-                    print("[OutingView] Invalid UUID in JSON: \(userInfo.id)")
-                    return nil
-                }
-                return UserDTO(
-                    id: uuid,
-                    name: userInfo.name,
-                    email: userInfo.email,
-                    phoneNumber: userInfo.phoneNumber
-                )
-            } else {
-                // Fallback for simple UUID strings
-                guard let uuid = UUID(uuidString: id) else {
-                    print("[OutingView] Invalid UUID string: \(id)")
-                    return nil
-                }
-                return UserDTO(
-                    id: uuid,
-                    name: id,
-                    email: "",
-                    phoneNumber: ""
-                )
-            }
+        for participant in outing.participants {
+            let userDTO = UserDTO(
+                id: UUID(uuidString: participant.id) ?? UUID(),
+                name: participant.name,
+                email: participant.email ?? "",
+                phoneNumber: participant.phoneNumber
+            )
+            extractedUsers.append(userDTO)
         }
+        
         
         if let currentUser = AuthCoreDataModel.shared.currentUser,
            !extractedUsers.contains(where: { $0.id == currentUser.id }) {
@@ -237,127 +171,85 @@ struct OutingView: View {
         }
         
         users = extractedUsers
-        //print("[OutingView] Extracted Users:", users)
     }
     
-    struct UserInfo: Codable {
-        let id: String
-        let name: String
-        let email: String
-        let phoneNumber: String
+    private func calculateYourShare() -> Double {
+        let currentUserId = AuthCoreDataModel.shared.currentUser?.id
+        if let debt = outing.debts?.first(where: { $0.fromUserId == currentUserId?.uuidString }) {
+            return Double(debt.amount) ?? 0.0
+        }
+        return 0.0
     }
-    
-    private func getActivitiesCount() -> Int {
-        return getActivities().count
-    }
-    
-    private func formatDate(_ date: Date?) -> String {
-        guard let date = date else { return "Date" }
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM/dd/yyyy"
-        return formatter.string(from: date)
-    }
-    
-    private func formatTime(_ date: Date?) -> String {
-        guard let date = date else { return "Time" }
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: date)
+
+    private func calculateTotalBudget() -> Double {
+        return (outing.activities ?? []).reduce(0.0) { total, activity in
+            total + (Double(activity.amount) ?? 0.0)
+        }
     }
     
     private func refreshOuting() {
-        guard let outingId = outing.id?.uuidString else { return }
+        guard !isRefreshing else { return }
         
-        outingService.getOuting(outingId: outingId) { result in
-            switch result {
-            case .success(let outingDTO):
+        isRefreshing = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            outingService.getOuting(outingId: outing.id.uuidString) { result in
                 DispatchQueue.main.async {
-                    if let refreshedOuting = self.outingService.convertToOutingEntity(
-                        outingDTO: outingDTO,
-                        context: self.outingCoreDataModel.container.viewContext
-                    ) {
-                        print("🔄 Refreshed Outing:", refreshedOuting) // Add this print statement
-                        self.outing = refreshedOuting
-                        self.extractUsers()
+                    isRefreshing = false
+                    
+                    switch result {
+                    case .success(let outingDTO):
+                        withAnimation {
+                            self.outing = OutingDTO(
+                                id: UUID(),
+                                title: "",
+                                description: "",
+                                owner: UserDTO(id: UUID(), name: "", email: "", phoneNumber: ""),
+                                participants: [],
+                                activities: [],
+                                outingEvents: [],
+                                debts: [],
+                                status: .draft,
+                                createdAt: "",
+                                updatedAt: ""
+                            )
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                withAnimation {
+                                    self.outing = outingDTO
+                                    self.extractUsers()
+                                }
+                            }
+                        }
+                    case .failure(let error):
+                        print("Failed to refresh outing:", error)
                     }
                 }
-            case .failure(let error):
-                print("❌ Failed to refresh outing:", error)
             }
         }
     }
 }
 
-
-// Update preview structure
 struct OutingView_Previews: PreviewProvider {
     static var previews: some View {
-        let outing = createPreviewOuting()
         NavigationView {
-            OutingView(initialOuting: outing)
+            OutingView(outing: previewOuting)
         }
     }
     
-    private static func createPreviewOuting() -> OutingEntity {
-        let context = PersistenceController.shared.container.viewContext
-        let outing = OutingEntity(context: context)
-        
-        // Create Event Entity
-        let event = OutingEventEntity(context: context)
-        event.id = UUID()
-        event.createdAt = Date()
-        event.updatedAt = Date()
-        event.tickets = "2" // Example number of tickets
-        
-        // Create the associated EventEntity
-        let eventDetails = EventEntity(context: context)
-        eventDetails.id = UUID()
-        eventDetails.title = "Wayo Live Concert"
-        eventDetails.desc = "Live music concert at Nelum Pokuna"
-        eventDetails.eventDate = Date()
-        eventDetails.locationName = "Nelum Pokuna"
-        
-        // Link the event entities
-        event.event = eventDetails
-        
-        // Sample data
-        outing.id = UUID(uuidString: "b2c59db1-07f3-4470-9d68-5a25f5f60bff")
-        outing.title = "Wayo Live Concert"
-        outing.desc = "Concert at Nelum Pokuna"
-        outing.totalExpense = 950.00
-        outing.due = 316.67
-        outing.outingEvent = event
-        
-        // Mock activities
-        let activitiesJSON = """
-        [
-            {
-                "id": "\(UUID())",
-                "title": "Concert Tickets",
-                "description": "Entry tickets",
-                "amount": "450.00",
-                "paidById": "1",
-                "participants": ["J", "M"],
-                "references": [],
-                "createdAt": "\(ISO8601DateFormatter().string(from: Date()))",
-                "updatedAt": "\(ISO8601DateFormatter().string(from: Date()))"
-            },
-            {
-                "id": "\(UUID())",
-                "title": "Taxi Fare",
-                "description": "Transportation",
-                "amount": "300.00",
-                "paidById": "2",
-                "participants": ["J", "M"],
-                "references": [],
-                "createdAt": "\(ISO8601DateFormatter().string(from: Date()))",
-                "updatedAt": "\(ISO8601DateFormatter().string(from: Date()))"
-            }
-        ]
-        """
-        
-        outing.activities = activitiesJSON
-        
-        return outing
+    static var previewOuting: OutingDTO {
+        OutingDTO(
+            id: UUID(),
+            title: "Preview Outing",
+            description: "Preview description",
+            owner: UserDTO(id: UUID(), name: "Owner", email: "owner@example.com", phoneNumber: "1234567890"),
+            participants: [],
+            activities: [],
+            outingEvents: [],
+            debts: [],
+            status: .draft,
+            createdAt: ISO8601DateFormatter().string(from: Date()),
+            updatedAt: ISO8601DateFormatter().string(from: Date())
+        )
     }
 }

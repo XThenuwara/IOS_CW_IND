@@ -11,22 +11,21 @@ class NotificationNavigationCoordinator {
     static let shared = NotificationNavigationCoordinator()
     
     func navigateToOuting(id: String, navigationPath: Binding<NavigationPath>) {
-        guard let outingId = UUID(uuidString: id) else {
+        guard UUID(uuidString: id) != nil else {
             print("NotificationNavigationCoordinator.navigateToOuting: Invalid UUID format:", id)
             return
         }
         
-        OutingCoreDataModel.shared.fetchOutings()
-        let outing = OutingCoreDataModel.shared.outingStore.first { outing in
-            outing.id?.uuidString.lowercased() == id.lowercased()
-        }
-        
-        if let outing = outing {
+        let outingService = OutingService(coreDataModel: OutingCoreDataModel.shared)
+        outingService.getOuting(outingId: id) { result in
             DispatchQueue.main.async {
-                navigationPath.wrappedValue.append(outing)
+                switch result {
+                case .success(let outingDTO):
+                    navigationPath.wrappedValue.append(outingDTO)
+                case .failure(let error):
+                    print("NotificationNavigationCoordinator.navigateToOuting: Error fetching outing:", error)
+                }
             }
-        } else {
-            print("NotificationNavigationCoordinator.navigateToOuting: No outing found with ID:", id)
         }
     }
     

@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct HomeOutingsSection: View {
-    @StateObject private var outingCoreData = OutingCoreDataModel()
+    @State private var outings: [OutingDTO] = []
     @State private var isLoading = false
+    @State private var error: Error?
+    private let outingService = OutingService(coreDataModel: OutingCoreDataModel())
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -30,26 +32,45 @@ struct HomeOutingsSection: View {
                 ProgressView()
                     .frame(maxWidth: .infinity)
                     .padding()
-            } else if !outingCoreData.outingStore.isEmpty {
+            } else if let error = error {
+                Text("Failed to load outings")
+                    .foregroundColor(.red)
+                    .padding()
+            } else if outings.isEmpty {
+                Text("No outings yet")
+                    .foregroundColor(.gray)
+                    .padding()
+            } else {
                 LazyVStack(spacing: 16) {
-                    ForEach(Array(outingCoreData.outingStore.prefix(2))) { outing in
-                        NavigationLink(destination: OutingView(initialOuting: outing)) {
+                    ForEach(Array(outings.prefix(2)), id: \.id) { outing in
+                        NavigationLink(destination: OutingView(outing: outing)) {
                             OutingCard(outing: outing)
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
                 }
-            } else {
-                Text("No outings yet")
-                    .foregroundColor(.gray)
-                    .padding()
             }
         }
         .padding(.horizontal)
         .task {
-            isLoading = true
-            await outingCoreData.refreshOutingsFromServer()
-            isLoading = false
+            await refreshOutings()
+        }
+    }
+    
+    private func refreshOutings() async {
+        isLoading = true
+        error = nil
+        
+        outingService.fetchOutings { result in
+            DispatchQueue.main.async {
+                isLoading = false
+                switch result {
+                case .success(let fetchedOutings):
+                    self.outings = fetchedOutings
+                case .failure(let fetchError):
+                    self.error = fetchError
+                }
+            }
         }
     }
 }

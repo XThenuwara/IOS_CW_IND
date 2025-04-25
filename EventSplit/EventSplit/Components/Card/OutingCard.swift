@@ -7,70 +7,29 @@
 import SwiftUI
 
 struct OutingCard: View {
-    let outing: OutingEntity
+    let outing: OutingDTO
     @State private var showAddExpenseSheet = false
     
-    private var title: String { outing.title ?? "Untitled" }
-    private var description: String { outing.desc ?? "" }
-    private var participants: Int {
-        guard let participantsJson = outing.participants else {
-            print("No participants JSON found")
-            return 0
-        }
-        
-        do {
-            
-            let participantStrings = try JSONDecoder().decode([String].self, from: participantsJson.data(using: .utf8)!)
-            
-            let participants = try participantStrings.compactMap { participantString -> ParticipantDTO? in
-                guard let data = participantString.data(using: .utf8) else { return nil }
-                return try JSONDecoder().decode(ParticipantDTO.self, from: data)
-            }
-            
-            return participants.count
-        } catch {
-            print("[OutingCard.ParticipantsDecode] Error decoding participants:", error)
-            return 0
+    private var title: String { outing.title }
+    private var description: String { outing.description }
+    private var participants: Int { outing.participants.count }
+    private var totalExpense: Double {
+        let activities = outing.activities ?? []
+        return activities.reduce(0.0) { sum, activity in
+            sum + activity.amount
         }
     }
-    private var totalExpense: Double { outing.totalExpense }
-    private var youOwe: Double { outing.due }
-    private var status: OutingStatus {
-        OutingStatus(rawValue: outing.status ?? "in_progress") ?? .inProgress
-    }
-    
-    
-    private var eventsCount: Int {
-        guard let eventsJson = outing.linkedEvents,
-              let data = eventsJson.data(using: String.Encoding.utf8),
-              let events = try? JSONDecoder().decode([OutingEventDTO].self, from: data) else {
-            return 0
-        }
-        return events.count
-    }
-    
-    private var activitiesCount: Int {
-        guard let activitiesJson = outing.activities,
-              let data = activitiesJson.data(using: .utf8),
-              let activities = try? JSONDecoder().decode([ActivityDTO].self, from: data) else {
-            return 0
-        }
-        return activities.count
-    }
+    private var status: OutingStatus { outing.status }
+    private var eventsCount: Int { outing.outingEvents?.count ?? 0 }
+    private var activitiesCount: Int { outing.activities?.count ?? 0 }
     
     @State private var currentUser: UserDTO? = AuthCoreDataModel.shared.currentUser
     
     private func calculateYourShare() -> Double {
-        var yourShare = 0.0
         guard let currentUserId = currentUser?.id.uuidString.lowercased() else { return 0.0 }
+        var yourShare = 0.0
         
-        guard let activitiesJson = outing.activities,
-              let data = activitiesJson.data(using: .utf8),
-              let activities = try? JSONDecoder().decode([ActivityDTO].self, from: data) else {
-            return 0.0
-        }
-        
-        for activity in activities {
+        for activity in outing.activities ?? [] {
             if activity.participants.contains(where: { $0.lowercased() == currentUserId }) {
                 let participantCount = Double(activity.participants.count)
                 yourShare += activity.amount / participantCount
@@ -82,7 +41,6 @@ struct OutingCard: View {
         }
         return yourShare
     }
-    
     
     var body: some View {
         VStack(spacing: 16) {
@@ -151,7 +109,7 @@ struct OutingCard: View {
                 Spacer()
                 
                 Button(action: {
-                    showAddExpenseSheet = true 
+                    showAddExpenseSheet = true
                 }) {
                     HStack(spacing: 4) {
                         Image(systemName: "plus.circle.fill")
@@ -179,19 +137,24 @@ struct OutingCard: View {
     }
 }
 
-
-
 #Preview {
-    let context = PersistenceController.preview.container.viewContext
-    let outing = OutingEntity(context: context)
-    outing.id = UUID(uuidString: "6a8d5990-40ea-4eb8-91bf-18a6542dd36c")
-    outing.title = "Weekend Camping"
-    outing.desc = "Fun weekend getaway"
-    outing.totalExpense = 950.00
-    outing.status = "in_progress"
-    outing.participants = "[{\"id\": \"123124541\", \"name\": \"John\", \"email\": \"john@example.com\", \"phoneNumber\": \"+94771234567\"}, {\"id\": \"123124542\", \"name\": \"Jane\", \"email\": \"jane@example.com\", \"phoneNumber\": \"+94771234568\"}]"
-    outing.linkedEvents = "[{id: 1}]"
-    
-    return OutingCard(outing: outing)
-        .padding()
+    OutingCard(
+        outing: OutingDTO(
+            id: UUID(),
+            title: "Weekend Camping",
+            description: "Fun weekend getaway",
+            owner: UserDTO(id: UUID(), name: "Owner", email: "owner@example.com", phoneNumber: "1234567890"),
+            participants: [
+                ParticipantDTO(id: "123124541", name: "John", email: "john@example.com", phoneNumber: "+94771234567"),
+                ParticipantDTO(id: "123124542", name: "Jane", email: "jane@example.com", phoneNumber: "+94771234568")
+            ],
+            activities: [],
+            outingEvents: [],
+            debts: [],
+            status: .draft,
+            createdAt: ISO8601DateFormatter().string(from: Date()),
+            updatedAt: ISO8601DateFormatter().string(from: Date())
+        )
+    )
+    .padding()
 }
