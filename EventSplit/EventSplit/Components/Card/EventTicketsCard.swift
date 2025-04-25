@@ -9,103 +9,114 @@ import SwiftUI
 
 struct EventTicketsCard: View {
     let ticket: PurchasedTicketsWithEventDTO
+    @State private var showTicketDrawer = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Event Info Header
-            HStack {
-                VStack(alignment: .leading) {
-                    Text(ticket.event.title)
-                        .font(.headline)
-                        .lineLimit(1)
-                    Text(formatDate(ticket.event.eventDate ?? ""))
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                Spacer()
-                StatusBadge(text: ticket.status)
-            }
-            
-            Divider()
-            
-            // Ticket Details
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Ticket #\(String(ticket.id.uuidString.prefix(6)).uppercased())")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    Spacer()
-                    Text("Qty: \(ticket.quantity)")
-                        .font(.subheadline)
-                }
-                
+        Button(action: {
+            showTicketDrawer = true
+        }) {
+            VStack(alignment: .leading, spacing: 12) {
+                // Event Info Header
                 HStack {
                     VStack(alignment: .leading) {
-                        Text("Unit Price")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text("LKR \(String(format: "%.2f", Double(ticket.unitPrice) ?? 0.0))")
+                        Text(ticket.event.title)
+                            .font(.headline)
+                            .lineLimit(1)
+                        Text(formatDate(ticket.event.eventDate ?? ""))
                             .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
                     Spacer()
-                    VStack(alignment: .trailing) {
-                        Text("Total")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text("LKR \(String(format: "%.2f", Double(ticket.totalAmount) ?? 0.0))")
-                            .font(.subheadline)
-                            .bold()
-                    }
+                    StatusBadge(text: ticket.status)
                 }
-            }
-            
-            Divider()
-            
-            // Location Info
-            HStack {
-                Image(systemName: "location")
-                    .foregroundColor(.secondary)
-                Text(ticket.event.locationName ?? "Location not specified")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-            }
-            
-            // Purchase Info
-            HStack {
-                Image(systemName: "clock")
-                    .foregroundColor(.secondary)
-                Text("Purchased on \(formatDate(ticket.createdAt))")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .padding()
-        .background(
-            ZStack {
-                Color(.highLightBackground)
-                GeometryReader { geometry in
-                    Path { path in
-                        let width = geometry.size.width
-                        let height = geometry.size.height
-                        let triangleWidth: CGFloat = 10
-                        let triangleHeight: CGFloat = 6
-                        let triangleCount = Int(width / triangleWidth)
-                        
-                        for i in 0...triangleCount {
-                            let xOffset = CGFloat(i) * triangleWidth
-                            path.move(to: CGPoint(x: xOffset, y: height))
-                            path.addLine(to: CGPoint(x: xOffset + triangleWidth/2, y: height - triangleHeight))
-                            path.addLine(to: CGPoint(x: xOffset + triangleWidth, y: height))
+                
+                Divider()
+                
+                // Ticket Details
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Invoice #\(String(ticket.id.uuidString.prefix(6)).uppercased())")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text("Qty: \(ticket.quantity)")
+                            .font(.subheadline)
+                    }
+                    
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text("Unit Price")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text("LKR \(String(format: "%.2f", Double(ticket.unitPrice) ?? 0.0))")
+                                .font(.subheadline)
+                        }
+                        Spacer()
+                        VStack(alignment: .trailing) {
+                            Text("Total")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text("LKR \(String(format: "%.2f", Double(ticket.totalAmount) ?? 0.0))")
+                                .font(.subheadline)
+                                .bold()
                         }
                     }
-                    .stroke(Color.primaryBackground, lineWidth: 1)
+                }
+                
+                Divider()
+                
+                // Location Info
+                HStack {
+                    Image(systemName: "location")
+                        .foregroundColor(.secondary)
+                    Text(ticket.event.locationName ?? "Location not specified")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
+                
+                // Purchase Info
+                HStack {
+                    Image(systemName: "clock")
+                        .foregroundColor(.secondary)
+                    Text("Purchased on \(formatDate(ticket.createdAt))")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
             }
-        )
-        .cornerRadius(12)
-        .withShadow()
-        .withBorder()
+            .padding()
+            .background(
+                ZStack {
+                    Color(.highLightBackground)
+                    GeometryReader { geometry in
+                        Path { path in
+                            let width = geometry.size.width
+                            let height = geometry.size.height
+                            let triangleWidth: CGFloat = 10
+                            let triangleHeight: CGFloat = 6
+                            let triangleCount = Int(width / triangleWidth)
+                            
+                            for i in 0...triangleCount {
+                                let xOffset = CGFloat(i) * triangleWidth
+                                path.move(to: CGPoint(x: xOffset, y: height))
+                                path.addLine(to: CGPoint(x: xOffset + triangleWidth/2, y: height - triangleHeight))
+                                path.addLine(to: CGPoint(x: xOffset + triangleWidth, y: height))
+                            }
+                        }
+                        .stroke(Color.primaryBackground, lineWidth: 1)
+                    }
+                }
+            )
+            .cornerRadius(12)
+            .withShadow()
+            .withBorder()
+        }
+        .buttonStyle(PlainButtonStyle())
+        .sheet(isPresented: $showTicketDrawer) {
+            DrawerModal(isOpen: $showTicketDrawer) {
+                EventTicketsCardDrawer(ticket: ticket)
+            }
+        }
     }
     
     private func formatDate(_ dateString: String) -> String {

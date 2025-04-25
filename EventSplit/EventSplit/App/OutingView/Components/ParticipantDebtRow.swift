@@ -85,7 +85,7 @@ struct DebtRow: View {
                     .disabled(isUpdating)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color.white)
+                    .background(Color.primaryBackground)
                     .foregroundColor(.secondaryBackground)
                     .cornerRadius(100)
                     
