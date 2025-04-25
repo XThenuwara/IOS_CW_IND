@@ -65,7 +65,7 @@ struct BrowseView: View {
                     }
                     .padding()
                     .frame(height: 40)
-                    .background(Color.white)
+                    .background(Color.highLightBackground)
                     .cornerRadius(24)
                     .shadow(color: Color.black.opacity(0.05), radius: 2)
                     
@@ -73,7 +73,7 @@ struct BrowseView: View {
                         Image(systemName: "slider.horizontal.3")
                             .foregroundColor(.primary)
                             .frame(width: 40, height: 40)
-                            .background(Color.white)
+                            .background(Color.highLightBackground)
                             .cornerRadius(23)
                             .shadow(color: Color.black.opacity(0.05), radius: 2)
                     }

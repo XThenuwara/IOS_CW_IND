@@ -163,7 +163,7 @@ struct EventView: View {
                         }
                         .padding()
                     }
-                    .background(Color.white)
+                    .background(Color.highLightBackground)
                     .cornerRadius(16)
                     .withShadow()
                     .withBorder()

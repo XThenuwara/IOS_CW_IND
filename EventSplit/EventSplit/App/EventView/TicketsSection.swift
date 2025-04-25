@@ -38,10 +38,10 @@ struct TicketsSection: View {
                     return mutableTicket
                 }
             } catch {
-                print("❌ TicketsSection JSON Decoding failed:", error)
+                print("TicketsSection JSON Decoding failed:", error)
             }
         } else {
-            print("❌ TicketsSection Failed to convert string to Data")
+            print("TicketsSection Failed to convert string to Data")
         }
     }
     
@@ -83,8 +83,8 @@ struct TicketsSection: View {
                             .font(.caption)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
-                            .background(Color.primary)
-                            .foregroundColor(.white)
+                            .background(Color.primaryBackground)
+                            .foregroundColor(Color.secondaryBackground)
                             .cornerRadius(20)
                         }
                     }
@@ -122,7 +122,7 @@ struct TicketsSection: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.highLightBackground)
         .cornerRadius(16)
         .withShadow()
         .withBorder()

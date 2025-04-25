@@ -28,11 +28,11 @@ struct ParticipantChip: View {
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(isSelected ? .secondaryBackground.opacity(0.1) : .primaryBackground)
+                    .fill(.highLightBackground)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(isSelected ? .secondaryBackground : .clear, lineWidth: 1)
+                    .stroke(isSelected ? .secondaryBackground.opacity(0.5) : .clear, lineWidth: 1)
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -53,4 +53,6 @@ struct ParticipantChip: View {
         )
     }
     .padding()
+    .background(.primaryBackground)
+ 
 }

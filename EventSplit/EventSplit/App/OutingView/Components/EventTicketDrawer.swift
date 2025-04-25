@@ -10,13 +10,15 @@ import SwiftUI
 struct EventTicketDrawer: View {
     let event: EventEntity
     let outingId: UUID?
+    let onSuccess: () -> Void
     private var eventService = EventService(coreDataModel: EventCoreDataModel())
     @State private var tickets: [PurchasedTicketsWithEventDTO] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
     @Binding var isOpen: Bool
     
-    init(event: EventEntity, isOpen: Binding<Bool>, outingId: UUID? = nil) {
+    init(event: EventEntity, isOpen: Binding<Bool>, outingId: UUID? = nil, onSuccess: @escaping () -> Void) {
+        self.onSuccess = onSuccess
         self.event = event
         self._isOpen = isOpen
         self.outingId = outingId
@@ -43,30 +45,7 @@ struct EventTicketDrawer: View {
                 }
                 .padding(.bottom, 8)
                 
-                // Event details summary
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(event.title ?? "Event")
-                        .font(.headline)
-                    
-                    HStack {
-                        Image(systemName: "mappin")
-                            .foregroundColor(.secondary)
-                        Text(event.locationName ?? "Location")
-                            .font(.subheadline)
-                    }
-                    
-                    HStack {
-                        Image(systemName: "calendar")
-                            .foregroundColor(.secondary)
-                        Text(DateUtils.shared.formatDate(event.eventDate))
-                            .font(.subheadline)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
-                .background(Color.secondary.opacity(0.1))
-                .cornerRadius(12)
-    
+
                 if isLoading {
                     ProgressView()
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -85,15 +64,16 @@ struct EventTicketDrawer: View {
                         }
                     }
                 }
-    
-                Spacer()
                 
                 TicketsSection(
                     event: event,
                     outingId: outingId,
                     showGroupOutingSection: false,
                     onPaymentSuccessful: {
-                        fetchTickets()
+                        withAnimation {
+                            fetchTickets()
+                            onSuccess()
+                        }
                     }
                 )
             }
@@ -101,7 +81,9 @@ struct EventTicketDrawer: View {
             .background(Color.primaryBackground)
         }
         .onAppear {
-            fetchTickets()
+            withAnimation {
+                fetchTickets()
+            }
         }
     }
     
@@ -185,7 +167,8 @@ struct EventTicketDrawer_Previews: PreviewProvider {
             EventTicketDrawer(
                 event: event,
                 isOpen: .constant(true),
-                outingId: UUID()
+                outingId: UUID(),
+                onSuccess: {}
             )
         }
         .previewLayout(.sizeThatFits)

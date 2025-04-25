@@ -9,16 +9,16 @@ import SwiftUI
 struct ParticipantDebtList: View {
     let users: [UserDTO]
     let participants: [ParticipantDTO]
-    let debts: [DebtEntity]
+    let debts: [DebtDTO]
     
     private var processedDebts: [Debt] {
-        debts.map { debtEntity in
+        debts.map { debtDTO in
             Debt(
-                id: debtEntity.id?.uuidString ?? "",
-                from: debtEntity.fromUserId ?? "",
-                to: debtEntity.toUserId ?? "",
-                amount: debtEntity.amount,
-                status: debtEntity.status ?? ""
+                id: debtDTO.id.uuidString,
+                from: debtDTO.fromUserId,
+                to: debtDTO.toUserId,
+                amount: Double(debtDTO.amount) ?? 0.0,
+                status: debtDTO.status.rawValue
             )
         }
     }

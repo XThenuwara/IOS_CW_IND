@@ -30,7 +30,7 @@ struct BrowseFilters: View {
                 .frame(width: 198, height: 20)
                 .padding(.vertical, 12)
                 .padding(.horizontal, 12)
-                .background(Color.white)
+                .background(Color.highLightBackground)
                 .cornerRadius(24)
                 .shadow(color: Color.black.opacity(0.05), radius: 2)
                 
@@ -49,7 +49,7 @@ struct BrowseFilters: View {
                     Image(systemName: "arrow.uturn.backward.circle")
                         .foregroundColor(.gray)
                         .frame(width: 40, height: 40)
-                        .background(Color.white)
+                        .background(Color.highLightBackground)
                         .cornerRadius(23)
                         .shadow(color: Color.black.opacity(0.05), radius: 2)
                 }

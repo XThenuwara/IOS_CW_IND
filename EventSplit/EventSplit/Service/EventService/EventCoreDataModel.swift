@@ -101,6 +101,27 @@ class EventCoreDataModel: ObservableObject {
     func fetchEventsFromServer() {
         serverModel.fetchEventsFromServer()
     }
+    
+    func getEvent(id: UUID) -> EventEntity? {
+        var serverEvent: EventEntity?
+        let semaphore = DispatchSemaphore(value: 0)
+        
+        serverModel.getEvent(eventId: id) { [weak self] result in
+            switch result {
+            case .success(let eventDTO):
+                if let context = self?.container.viewContext {
+                    serverEvent = self?.serverModel.convertToEventEntity(eventDTO: eventDTO, context: context)
+                    try? context.save()
+                }
+            case .failure(let error):
+                print("❌ Error fetching event from server: \(error)")
+            }
+            semaphore.signal()
+        }
+        
+        _ = semaphore.wait(timeout: .now() + 10)
+        return serverEvent
+    }
 }
 
 struct EventCoreDataModelPreview: View {

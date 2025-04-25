@@ -29,7 +29,7 @@ enum StatusColor {
         switch lowercased {
         case "draft", "pending", "inactive", "disabled":
             return .gray
-        case "active", "completed", "success", "approved", "settled":
+        case "active", "completed", "success", "approved", "settled", "purchased":
             return .green
         case "warning", "in progress", "processing", "waiting":
             return .yellow

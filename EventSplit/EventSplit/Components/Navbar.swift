@@ -29,7 +29,9 @@ struct Navbar: View {
             HStack(spacing: 16) {
       
                 Button(action: {
-                    selectedTab = 0
+                    withAnimation {
+                        selectedTab = 1  
+                    }
                 }) {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.primary)
