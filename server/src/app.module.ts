@@ -14,6 +14,10 @@ import { AuthModule } from './auth/auth.module';
 import { GroupModule } from './group/group.module';
 import { LLMService } from './llm.service';
 import { NotificationModule } from './notification/notification.module';
+import { OpenRouterProvider } from './LLM/openrouter.provider';
+import { AwanLLMProvider } from './LLM/awanllm.provider';
+import { DeepseekProvider } from './LLM/deepseek.provider';
+import { GeminiProvider } from './LLM/gemini.provider';
 
 
 @Module({
@@ -46,7 +50,11 @@ import { NotificationModule } from './notification/notification.module';
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
-    LLMService,
+    OpenRouterProvider,
+    AwanLLMProvider,
+    DeepseekProvider,
+    GeminiProvider,
+    LLMService
   ],
 })
 export class AppModule {}
