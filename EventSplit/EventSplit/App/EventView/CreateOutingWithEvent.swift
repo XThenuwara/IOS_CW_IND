@@ -28,7 +28,8 @@ struct CreateOutingDrawerWithEvent: View {
     }
     
     var body: some View {
-        VStack(spacing: 20) {
+        ScrollView {
+            VStack(spacing: 20) {
             // Header
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -48,7 +49,8 @@ struct CreateOutingDrawerWithEvent: View {
                 text: $title,
                 placeholder: "Enter outing title",
                 icon: "pencil",
-                label: "Title"
+                label: "Title",
+                highlight: true
             )
             
             // Description Input
@@ -218,6 +220,7 @@ struct CreateOutingDrawerWithEvent: View {
         }
         .onAppear {
             eventCoreData.fetchEventsFromServer()
+        }
         }
     }
     

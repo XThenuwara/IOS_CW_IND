@@ -40,7 +40,7 @@ struct FilterEventsDrawer: View {
                         selectedRadius = String(Int(newValue))
                         mapState.updateRegion(radius: newValue)
                     }
-                ), in: 1...5000, step: 10)
+                ), in: 1...1000, step: 10)
                 .tint(.blue)
             }
             .padding()

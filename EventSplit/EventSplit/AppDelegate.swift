@@ -32,7 +32,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         fetchAndNotify()
     
         // Timer 5 min
-        notificationTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
+        notificationTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
             self?.fetchAndNotifyWithNavigation()
         }
     }
