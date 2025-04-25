@@ -51,7 +51,7 @@ struct EventTypeFilter: View {
             }
             .frame(width: 128, height: 20)
             .padding(.vertical, 12)
-            .background(Color.white)
+            .background(Color.highLightBackground)
             .cornerRadius(24)
             .shadow(color: Color.black.opacity(0.05), radius: 2)
         }

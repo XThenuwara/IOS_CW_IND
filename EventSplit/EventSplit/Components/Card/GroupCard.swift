@@ -57,7 +57,7 @@ struct GroupCard: View {
             }
         }
         .padding()
-        .background(Color.white)
+        .background(Color.highLightBackground)
         .cornerRadius(12)
     }
 }

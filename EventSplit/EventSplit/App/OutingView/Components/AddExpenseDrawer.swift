@@ -10,10 +10,10 @@ import UIKit
 
 struct AddExpenseDrawer: View {
     let onSuccess: () -> Void
+    let outing: OutingDTO
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var outingCoreDataModel = OutingCoreDataModel()
     @State private var buttonState: ActionButtonState = .default
-    private let outingService: OutingService
+    private let outingService = OutingService(coreDataModel: OutingCoreDataModel())
     @State private var currentUserId: String = ""
     @State private var expenseName: String = ""
     @State private var expenseCategory: String = ""
@@ -28,14 +28,9 @@ struct AddExpenseDrawer: View {
     @State private var errors: [String] = []
     @State private var isErrorVisible = false
     
-    let outing: OutingEntity
-    
-    init(outing: OutingEntity, onSuccess: @escaping () -> Void) {
+    init(outing: OutingDTO, onSuccess: @escaping () -> Void) {
         self.outing = outing
         self.onSuccess = onSuccess
-        let outingCoreDataModel =  OutingCoreDataModel.shared
-        self.outingService = OutingService(coreDataModel: OutingCoreDataModel())
-        print("[AddExpenseDrawer] Outing ID:", outing.id?.uuidString ?? "nil")
         
         if let currentUser = AuthCoreDataModel.shared.currentUser {
             _currentUserId = State(initialValue: currentUser.id.uuidString)
@@ -56,27 +51,10 @@ struct AddExpenseDrawer: View {
             allParticipants.append(currentUserParticipant)
         }
         
-        // Add other participants
-        if let participantsString = outing.participants,
-           let data = participantsString.data(using: .utf8) {
-            do {
-                let participantStrings = try JSONDecoder().decode([String].self, from: data)
-                
-                let otherParticipants = try participantStrings.compactMap { participantString -> ParticipantDTO? in
-                    guard let data = participantString.data(using: .utf8) else { return nil }
-                    return try JSONDecoder().decode(ParticipantDTO.self, from: data)
-                }
-                
-                allParticipants.append(contentsOf: otherParticipants)
-            } catch {
-                print("Decoding Error:", error)
-            }
-        }
+        allParticipants.append(contentsOf: outing.participants)
         
         return allParticipants
     }
-    
-    
     
     private var filteredParticipants: [ParticipantDTO] {
         if searchText.isEmpty {
@@ -140,7 +118,7 @@ struct AddExpenseDrawer: View {
                         )
                         
                         // Warning Message
-                        if selectedImage == nil {
+                        if selectedImage != nil {
                             HStack(spacing: 8) {
                                 Image(systemName: "exclamationmark.triangle")
                                     .foregroundColor(.orange)
@@ -149,7 +127,7 @@ struct AddExpenseDrawer: View {
                                     .foregroundColor(.secondary)
                             }
                             .padding()
-                            .background(Color.orange.opacity(0.1))
+                            .background(Color.orange.opacity(0.2))
                             .cornerRadius(8)
                         }
                         
@@ -253,6 +231,14 @@ struct AddExpenseDrawer: View {
                             state: buttonState,
                             fullWidth: true
                         )
+                        
+                        Text("Split expenses fairly and keep track of who owes what")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 8)
+                            .padding(.bottom, 24)
                     }
                 }
                 .padding(.horizontal, 2)
@@ -319,13 +305,6 @@ struct AddExpenseDrawer: View {
             return
         }
         
-        guard let outingId = outing.id?.uuidString else {
-            errors.append("Invalid outing ID")
-            isErrorVisible = true
-            buttonState = .error
-            return
-        }
-        
         guard !paidById.isEmpty else {
             errors.append("Please select who paid for the expense")
             isErrorVisible = true
@@ -339,7 +318,7 @@ struct AddExpenseDrawer: View {
             amount: amount,
             participantIds: Array(selectedParticipants),
             paidById: paidById,
-            outingId: outingId,
+            outingId: outing.id.uuidString,
             references: nil,
             completion: { result in
                 switch result {

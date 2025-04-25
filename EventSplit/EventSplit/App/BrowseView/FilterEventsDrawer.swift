@@ -44,7 +44,7 @@ struct FilterEventsDrawer: View {
                 .tint(.blue)
             }
             .padding()
-            .background(Color.white)
+            .background(Color.highLightBackground)
             .cornerRadius(12)
             
             HStack {
@@ -54,7 +54,7 @@ struct FilterEventsDrawer: View {
                     endDate: $endDate
                 ) {}
                     .padding()
-                    .background(Color.white)
+                    .background(Color.highLightBackground)
                     .cornerRadius(12)
                 
                 Spacer()
@@ -62,7 +62,7 @@ struct FilterEventsDrawer: View {
                 // Event Type Filter
                 EventTypeFilter(selectedType: $selectedType) {}
                     .padding()
-                    .background(Color.white)
+                    .background(Color.highLightBackground)
                     .cornerRadius(12)
             }
             

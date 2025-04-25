@@ -20,18 +20,7 @@ struct OutingExpenseRow: View {
         Button(action: {
             showExpenseDetails = true
         }) {
-            HStack(spacing: 12) {
-                // Avatar circle
-                ZStack {
-                    Circle()
-                        .fill(Color(.primaryBackground))
-                    Image(systemName: "receipt")
-                        .font(.system(size: 16))
-                       .foregroundColor(.secondary)
-                }
-                .frame(width: 32, height: 32)
-                
-                
+            HStack(spacing: 12) {                
                 VStack(alignment: .leading, spacing: 2) {
                     Text(activity.title)
                         .font(.subheadline)

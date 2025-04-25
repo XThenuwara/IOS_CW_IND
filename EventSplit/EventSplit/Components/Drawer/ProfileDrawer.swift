@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct ProfileDrawer: View {
+    @StateObject private var themeManager = ThemeManager.shared
+    @Environment(\.colorScheme) var colorScheme
+    
     var body: some View {
         VStack(spacing: 24) {
             // Profile Header
@@ -27,6 +30,19 @@ struct ProfileDrawer: View {
                 DrawerMenuItem(icon: "gear", title: "Settings")
                 DrawerMenuItem(icon: "bell", title: "Notifications")
                 DrawerMenuItem(icon: "questionmark.circle", title: "Help")
+                
+                // Theme Switcher
+                DrawerMenuItem(
+                    icon: themeManager.isDarkMode ? "moon.fill" : "sun.max.fill",
+                    title: themeManager.isDarkMode ? "Dark Mode" : "Light Mode",
+                    action: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            themeManager.toggleTheme()
+                        }
+                    }
+                )
+                .preferredColorScheme(themeManager.isDarkMode ? .dark : .light)
+                
                 DrawerMenuItem(icon: "arrow.right.square", title: "Logout", action: {
                     AuthCoreDataModel.shared.logout { success in
                         if success {
@@ -36,12 +52,13 @@ struct ProfileDrawer: View {
                 })
                 .foregroundColor(.red)
             }
-            .background(Color.white)
+            .background(Color.highLightBackground)
             .cornerRadius(12)
             
             Spacer()
         }
         .padding()
+        .preferredColorScheme(themeManager.isDarkMode ? .dark : .light)
     }
 }
 

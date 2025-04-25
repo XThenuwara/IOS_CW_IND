@@ -61,7 +61,7 @@ struct ContactCard: View {
             }
         }
         .padding()
-        .background(.primaryBackground)
+        .background(.highLightBackground)
         .cornerRadius(12)
     }
 }
