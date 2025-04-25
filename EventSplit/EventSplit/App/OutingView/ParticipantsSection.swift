@@ -5,14 +5,27 @@
 //  Created by Yasas Hansaka Thenuwara on 2025-04-13.
 //
 import SwiftUI
+import ContactsUI
 
 struct ParticipantsSection: View {
     let users: [UserDTO]
     let activities: [ActivityDTO]
+    let outingId: String
+    let outingService = OutingService(coreDataModel: OutingCoreDataModel())
     @State private var showInvite = false
-    
+    @State private var updatedUsers: [UserDTO]
+    @State private var showDeleteAlert = false
+    @State private var participantToDelete: UserDTO?
+
+    init(users: [UserDTO], activities: [ActivityDTO], outingId: String) {
+        self.users = users
+        self.activities = activities
+        self.outingId = outingId
+        _updatedUsers = State(initialValue: users)
+    }
+
     private var participantAmounts: [(user: UserDTO, amount: Double, status: String)] {
-        users.map { user in
+        (updatedUsers.isEmpty ? users : updatedUsers).map { user in
             let paidAmount = activities
                 .filter { $0.paidById == user.id.uuidString }
                 .reduce(0.0) { $0 + (Double($1.amount) ?? 0.0) }
@@ -23,6 +36,51 @@ struct ParticipantsSection: View {
         }
     }
     
+    private func updateParticipantsList(participants: [UserDTO]) {
+        updatedUsers = participants
+        
+        let participantDTOs = participants.map { 
+            ParticipantDTO(
+                id: $0.id.uuidString, 
+                name: $0.name, 
+                email: $0.email, 
+                phoneNumber: $0.phoneNumber
+            ) 
+        }
+        
+        outingService.updateParticipants(outingId: outingId, participants: participantDTOs) { result in
+            switch result {
+            case .success:
+                break
+            case .failure(let error):
+                print("Failed to update participants: \(error)")
+            }
+        }
+    }
+    
+    private func addParticipants(with contacts: [CNContact]) {
+        let newUsers = contacts.map { contact in
+            UserDTO(
+                id: UUID(),
+                name: contact.givenName,
+                email: contact.emailAddresses.first?.value as String? ?? "",
+                phoneNumber: contact.phoneNumbers.first?.value.stringValue ?? ""
+            )
+        }
+        
+        var combinedUsers = users
+        combinedUsers.append(contentsOf: newUsers)
+        updateParticipantsList(participants: combinedUsers)
+    }
+    
+    private func deleteParticipant(_ user: UserDTO) {
+        var updatedParticipants = users
+        if let index = updatedParticipants.firstIndex(where: { $0.id == user.id }) {
+            updatedParticipants.remove(at: index)
+            updateParticipantsList(participants: updatedParticipants)
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Header
@@ -32,7 +90,7 @@ struct ParticipantsSection: View {
                 
                 // Participant avatars
                 HStack(spacing: -8) {
-                    ForEach(users.prefix(3), id: \.id) { user in
+                    ForEach(updatedUsers.prefix(3), id: \.id) { user in
                         Circle()
                             .fill(.primaryBackground)
                             .frame(width: 24, height: 24)
@@ -42,12 +100,12 @@ struct ParticipantsSection: View {
                                     .foregroundColor(.secondary)
                             )
                     }
-                    if users.count > 3 {
+                    if updatedUsers.count > 3 {
                         Circle()
                             .fill(.primaryBackground)
                             .frame(width: 24, height: 24)
                             .overlay(
-                                Text("+\(users.count - 3)")
+                                Text("+\(updatedUsers.count - 3)")
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                             )
@@ -93,37 +151,55 @@ struct ParticipantsSection: View {
                                 
                                 Text(participant.status)
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.gray)
                             }
                         }
                         
                         Spacer()
                         
                         // Amount
-                        Text("$\(String(format: "%.2f", participant.amount))")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
+                        if participant.amount > 0 {
+                            Text("$\(String(format: "%.2f", participant.amount))")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
+                        
+                        // Delete Button
+                        Button(action: {
+                            participantToDelete = participant.user
+                            showDeleteAlert = true
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.red)
+                                .font(.system(size: 20))
+                        }
                     }
                 }
             }
-            .padding()
-            .cornerRadius(12)
         }
-
         .padding()
-        .withBorder()
         .background(.highLightBackground)
+        .cornerRadius(16)
+        .withShadow()
+        .withBorder()
+        .padding(.horizontal)
         .sheet(isPresented: $showInvite) {
             DrawerModal(isOpen: $showInvite) {
                 InviteMemberDrawer { contacts in
-                    print("Selected \(contacts.count) contacts")
+                    addParticipants(with: contacts)
                 }
             }
         }
-        .cornerRadius(12)
-        .padding(.horizontal)
-        .withShadow()
-
+        .alert("Remove Participant", isPresented: $showDeleteAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Remove", role: .destructive) {
+                if let user = participantToDelete {
+                    deleteParticipant(user)
+                }
+            }
+        } message: {
+            Text("Are you sure you want to remove this participant?")
+        }
     }
 }
 
@@ -134,7 +210,8 @@ struct ParticipantsSection_Previews: PreviewProvider {
                 UserDTO(id: UUID(), name: "John Doe", email: "john@example.com", phoneNumber: "1234567890"),
                 UserDTO(id: UUID(), name: "Jane Smith", email: "jane@example.com", phoneNumber: "0987654321")
             ],
-            activities: []
+            activities: [],
+            outingId: "sample-outing-id"
         )
     }
 }
