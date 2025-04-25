@@ -1,64 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-
-interface Message {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}
-
-interface LLMResponse {
-  id: string;
-  choices: {
-    message: Message;
-    finish_reason: string;
-  }[];
-}
+import { Message, LLMProvider } from './LLM/llm-provider.interface';
+import { OpenRouterProvider } from './LLM/openrouter.provider';
+import { AwanLLMProvider } from './LLM/awanllm.provider';
+import { DeepseekProvider } from './LLM/deepseek.provider';
+import { GeminiProvider } from './LLM/gemini.provider';
 
 @Injectable()
 export class LLMService {
-  private readonly apiKey: string;
-  private readonly apiUrl = 'https://api.awanllm.com/v1/chat/completions';
+  private provider: LLMProvider;
   private receiptCache = new Map<string, any>();
 
-  constructor(private configService: ConfigService) {
-    this.apiKey = this.configService.get<string>('AWANLLM_API_KEY') || "";
-  }
-
-  async generateResponse(messages: Message[]): Promise<string> {
-    try {
-      const response = await fetch(this.apiUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'Meta-Llama-3-8B-Instruct',
-          messages,
-          repetition_penalty: 1.1,
-          temperature: 0.7,
-          top_p: 0.9,
-          top_k: 40,
-          max_tokens: 1024,
-          stream: false,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.statusText}`);
-      }
-
-      const data: LLMResponse = await response.json();
-      return data.choices[0]?.message?.content || 'No response generated';
-    } catch (error) {
-      console.error('LLM API Error:', error);
-      throw new Error('Failed to generate LLM response');
-    }
+  constructor(
+    private configService: ConfigService,
+    private openRouterProvider: OpenRouterProvider,
+    private awanLLMProvider: AwanLLMProvider,
+    private deepseekProvider: DeepseekProvider,
+    private geminiProvider: GeminiProvider
+  ) {
+    // Choose provider based on configuration
+    const useOpenRouter = this.configService.get<boolean>('USE_OPENROUTER') || false;
+    console.log('Use OpenRouter:', useOpenRouter);
+    this.provider = useOpenRouter ? geminiProvider : geminiProvider;
   }
 
   private generateHash(text: string): string {
     const crypto = require('crypto');
     return crypto.createHash('md5').update(text).digest('hex');
+  }
+
+  async generateResponse(messages: Message[]): Promise<string> {
+    return this.provider.generateResponse(messages);
   }
 
   async analyzeReceipt(receiptText: string): Promise<any> {
@@ -79,7 +51,7 @@ export class LLMService {
           "merchantName": "Example Merchant",
           "category": "Food"
         }
-          if cateogry is not found, return "Others", ONLY REQUESTED JSON, NO OTHER TEXT, NO EXPLANATION, NO COMMENTS ONLY JSON
+          if cateogry is not found, return "Others", ONLY REQUESTED JSON, NO OTHER TEXT,NO MARKDOWN SYNTAX, NO EXPLANATION, NO COMMENTS ONLY JSON
         `
       },
       {
@@ -92,10 +64,8 @@ export class LLMService {
       const response = await this.generateResponse(messages);
       const parsedResponse = JSON.parse(response);
       
-      // Store in cache
       this.receiptCache.set(textHash, parsedResponse);
       
-      console.log("🚀 ~ LLMService ~ analyzeReceipt ~ response:", response);
       return parsedResponse;
     } catch (error) {
       console.error('Receipt analysis error:', error);
