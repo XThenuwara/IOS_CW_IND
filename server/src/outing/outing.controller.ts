@@ -34,6 +34,13 @@ export class OutingController {
   }
 
   @Roles(UserRole.ADMIN, UserRole.USER)
+  @Patch(':id/participants')
+  @HttpCode(HttpStatus.OK)
+  async updateParticipants(@Param('id') outingId: string, @Body() participants: Participant[], @Request() req) {
+    return await this.outingService.updateParticipants(outingId, participants, req.user.id);
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.USER)
   @Get()
   @HttpCode(HttpStatus.OK)
   async findAll(@Request() req) {

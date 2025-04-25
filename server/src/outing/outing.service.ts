@@ -203,8 +203,21 @@ export class OutingService {
         where: [{ owner: { id: userId } }],
         relations: ['owner', 'activities', 'outingEvents', 'outingEvents.event', 'debts'],
       });
+      
+      const parsedOutings = outings.map(outing => ({
+        ...outing,
+        participants: outing.participants.map(participantStr => {
+          try {
+            return JSON.parse(participantStr);
+          } catch (e) {
+            this.logger.warn(`Failed to parse participant: ${participantStr}`);
+            return participantStr;
+          }
+        })
+      }));
+      
       this.logger.log(`Found ${outings.length} outings for user: ${userId}`);
-      return outings;
+      return parsedOutings;
     } catch (error) {
       this.logger.error(`Failed to fetch outings: ${error.message}`);
       throw error;
@@ -223,8 +236,20 @@ export class OutingService {
         throw new NotFoundException(`Outing with ID ${id} not found`);
       }
 
+      const parsedOuting = {
+        ...outing,
+        participants: outing.participants.map(participantStr => {
+          try {
+            return JSON.parse(participantStr);
+          } catch (e) {
+            this.logger.warn(`Failed to parse participant: ${participantStr}`);
+            return participantStr;
+          }
+        })
+      };
+
       this.logger.log(`Successfully found outing: ${id}`);
-      return outing;
+      return parsedOuting;
     } catch (error) {
       this.logger.error(`Failed to fetch outing: ${error.message}`);
       throw error;
@@ -248,6 +273,36 @@ export class OutingService {
       this.logger.error(`Failed to add participant: ${error.message}`);
       throw error;
     }
+  }
+
+  async updateParticipants(outingId: string, participants: Participant[], userId: string): Promise<Outing> {
+      if(!userId) {
+          this.logger.error(`User not found: ${userId}`);
+          throw new NotFoundException('User not found');
+      }
+
+      this.logger.log(`Updating participants for outing: ${outingId}`);
+      try {
+          const outing = await this.outingRepository.findOne({
+              where: { id:outingId },
+              relations: ['activities', 'debts'],
+          });
+  
+          if (!outing) {
+              throw new NotFoundException('Outing not found');
+          }
+
+          outing.participants = participants.map(participant => JSON.stringify(participant));
+          const updatedOuting = await this.outingRepository.save(outing);
+          // Recalculate debts
+          await this.calculateDebts(updatedOuting, userId);
+  
+          this.logger.log(`Successfully updated participants for outing: ${outingId}`);
+          return updatedOuting;
+      } catch (error) {
+          this.logger.error(`Failed to update participants: ${error.message}`);
+          throw error;
+      }
   }
 
   async update(id: string, updateOutingDto: UpdateOutingDto): Promise<Outing> {

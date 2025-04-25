@@ -14,5 +14,6 @@ import { Debt } from './entities/debt.entity';
   imports: [TypeOrmModule.forFeature([Event, Outing, OutingEvent, Activity, User, Debt ]), UserModule],
   controllers: [OutingController],
   providers: [OutingService],
+  exports: [OutingService],
 })
 export class OutingModule {}
