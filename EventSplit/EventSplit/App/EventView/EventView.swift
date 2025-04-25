@@ -8,6 +8,9 @@ import SwiftUI
 
 struct EventView: View {
     let event: EventEntity
+    @State private var purchasedTickets: [PurchasedTicketsDTO] = []
+    private let eventService = EventService(coreDataModel: EventCoreDataModel())
+    @State private var error: Error?
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -166,11 +169,12 @@ struct EventView: View {
                     .withBorder()
                 }
                 
-                PurchasedTicketsSection(event: event)
+                PurchasedTicketsSection(event: event, purchasedTickets: purchasedTickets, onPaymentSuccessful: loadPurchasedTickets)
                 
                 
                 TicketsSection(
-                    event: event
+                    event: event,
+                    onPaymentSuccessful: loadPurchasedTickets
                 )
             }
             .padding(.horizontal, 10)
@@ -190,6 +194,22 @@ struct EventView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
         return formatter.string(from: date)
+    }
+
+    private func loadPurchasedTickets() {
+        guard let eventId = event.id else { return }
+        
+        eventService.getPurchasedTickets(eventId: eventId) { result in
+            DispatchQueue.main.async {
+                
+                switch result {
+                case .success(let tickets):
+                    self.purchasedTickets = tickets
+                case .failure(let error):
+                    self.error = error
+                }
+            }
+        }
     }
 }
 

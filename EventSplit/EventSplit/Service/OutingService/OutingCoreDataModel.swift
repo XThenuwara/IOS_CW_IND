@@ -19,7 +19,7 @@ class OutingCoreDataModel: ObservableObject {
     }
     
     func fetchOutings() {
-        serverModel.fetchOutings();
+        // serverModel.fetchOutings()
         let request = NSFetchRequest<OutingEntity>(entityName: "OutingEntity")
         do {
             outingStore = try container.viewContext.fetch(request)
@@ -29,8 +29,8 @@ class OutingCoreDataModel: ObservableObject {
     }
 
     func refreshOutingsFromServer() {
-        outingStore.removeAll()
-        serverModel.fetchOutings()
+        // outingStore.removeAll()
+        // serverModel.fetchOutings()
     }
     
     func createNewOuting(
@@ -48,12 +48,7 @@ class OutingCoreDataModel: ObservableObject {
         ) { result in
             switch result {
             case .success(let outingDTO):
-                DispatchQueue.main.async {
-                    if let outingEntity = self.serverModel.convertToOutingEntity(outingDTO: outingDTO, context: self.container.viewContext) {
-                        self.outingStore.append(outingEntity)
-                        self.saveData()
-                    }
-                }
+                print("Outing created successfully")
             case .failure(let error):
                 print("Error creating outing: \(error)")
             }
@@ -80,13 +75,13 @@ class OutingCoreDataModel: ObservableObject {
         ) { [weak self] result in
             switch result {
             case .success(let response):
-                print("✅ Activity added successfully")
+                print("Activity added successfully")
                 DispatchQueue.main.async {
                 
                     self?.fetchOutings()
                 }
             case .failure(let error):
-                print("❌ Error adding activity: \(error)")
+                print("Error adding activity: \(error)")
             }
         }
     }
@@ -113,25 +108,4 @@ class OutingCoreDataModel: ObservableObject {
             print("Error clearing outings: \(error)")
         }
     }
-}
-
-struct OutingCoreDataModelPreview: View {
-    @StateObject var viewModel = OutingCoreDataModel()
-    
-    var body: some View {
-        VStack {
-            List {
-                ForEach(viewModel.outingStore, id: \.id) { outing in
-                    OutingCard(outing: outing)
-                }
-            }
-        }
-        .onAppear {
-            viewModel.fetchOutings()
-        }
-    }
-}
-
-#Preview {
-    OutingCoreDataModelPreview()
 }

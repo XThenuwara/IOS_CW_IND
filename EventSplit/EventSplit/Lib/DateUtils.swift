@@ -22,4 +22,18 @@ class DateUtils {
         guard let date = date else { return "No date" }
         return readableDateFormatter.string(from: date)
     }
+
+    func formatDate(_ date: Date?) -> String {
+        guard let date = date else { return "Date" }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d, yyyy"
+        return formatter.string(from: date)
+    }
+    
+    func formatTime(_ date: Date?) -> String {
+        guard let date = date else { return "Time" }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: date)
+    }
 }

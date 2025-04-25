@@ -8,6 +8,7 @@ struct LoginDTO: Codable {
 struct SignUpDTO: Codable {
     let name: String
     let email: String
+    let phoneNumber: String
     let password: String
 }
 
@@ -35,8 +36,8 @@ class AuthService {
         }
     }
     
-    func signup(name: String, email: String, password: String, completion: @escaping (Result<AuthResponse, AuthError>) -> Void) {
-        let signupDTO = SignUpDTO(name: name, email: email, password: password)
+    func signup(name: String, email: String, phoneNumber: String, password: String, completion: @escaping (Result<AuthResponse, AuthError>) -> Void) {
+        let signupDTO = SignUpDTO(name: name, email: email, phoneNumber: phoneNumber, password: password)
         let signupURL = serverURL.appendingPathComponent("signup")
         
         let requestResult = NetworkHelper.createRequest(url: signupURL, method: "GET", body: signupDTO)        

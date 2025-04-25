@@ -65,10 +65,10 @@ class AuthCoreDataModel: ObservableObject {
         }
     }
 
-    func signup(name: String, email: String, password: String, completion: @escaping (Result<Void, AuthError>) -> Void) {
+    func signup(name: String, email: String, phoneNumber: String, password: String, completion: @escaping (Result<Void, AuthError>) -> Void) {
         Task {
             await MainActor.run {
-                authService.signup(name: name, email: email, password: password) { [weak self] result in
+                authService.signup(name: name, email: email, phoneNumber: phoneNumber, password: password) { [weak self] result in
                     switch result {
                     case .success(let authResponse):
                         self?.saveAuthData(
@@ -88,8 +88,17 @@ class AuthCoreDataModel: ObservableObject {
             }
         }
     }
-    func logout() {
-        clearAuthData()
+    func logout(completion: @escaping (Bool) -> Void) {
+        Task {
+            await MainActor.run {
+                clearAuthData()
+                
+                currentUser = nil
+                authEntity = nil
+
+                completion(true)
+            }
+        }
     }
     
     var isAuthenticated: Bool {

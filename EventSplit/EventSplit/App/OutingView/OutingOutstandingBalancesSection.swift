@@ -9,14 +9,14 @@ import SwiftUI
 struct OutingOwesSection: View {
     let users: [UserDTO]
     let participants: [ParticipantDTO]
-    let debts: [DebtEntity]
+    let debts: [DebtDTO]
     let yourShare: Double
     
     var body: some View {
         VStack(spacing: 16) {
             // Header
             VStack(alignment: .leading, spacing: 4) {
-                Text("Outstanding Balances")
+                Text("Balances")
                     .font(.title3)
                     .fontWeight(.semibold)
                 

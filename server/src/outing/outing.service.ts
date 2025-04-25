@@ -216,7 +216,7 @@ export class OutingService {
     try {
       const outing = await this.outingRepository.findOne({
         where: { id },
-        relations: ['owner', 'activities', 'outingEvents'],
+        relations: ['owner', 'activities', 'outingEvents', 'outingEvents.event', 'debts'],
       });
 
       if (!outing) {
@@ -310,7 +310,6 @@ export class OutingService {
         throw new NotFoundException('Activity not found');
       }
 
-
       const uploadsDir = path.join(process.cwd(), 'uploads');
       await fs.mkdir(uploadsDir, { recursive: true });
 
@@ -333,25 +332,48 @@ export class OutingService {
   }
 
   async getImagesForActivity(activityId: string): Promise<{ images: string[] }> {
-      this.logger.log(`Fetching images for activity: ${activityId}`);
-      try {
-        const activity = await this.activityRepository.findOne({
-          where: { id: activityId },
-        });
-  
-        if (!activity) {
-          throw new NotFoundException('Activity not found');
-        }
-  
-        // Return full URLs for the images
-        const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-        const imageUrls = activity.references?.map(ref => `${baseUrl}${ref}`) || [];
-  
-        this.logger.log(`Successfully fetched images for activity: ${activityId}`);
-        return { images: imageUrls };
-      } catch (error) {
-        this.logger.error(`Failed to fetch images: ${error.message}`);
-        throw error;
+    this.logger.log(`Fetching images for activity: ${activityId}`);
+    try {
+      const activity = await this.activityRepository.findOne({
+        where: { id: activityId },
+      });
+
+      if (!activity) {
+        throw new NotFoundException('Activity not found');
       }
+
+      // Return full URLs for the images
+      const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+      const imageUrls = activity.references?.map((ref) => `${baseUrl}${ref}`) || [];
+
+      this.logger.log(`Successfully fetched images for activity: ${activityId}`);
+      return { images: imageUrls };
+    } catch (error) {
+      this.logger.error(`Failed to fetch images: ${error.message}`);
+      throw error;
     }
+  }
+
+  async updateDebtStatus(debtId: string, status: 'pending' | 'paid'): Promise<Debt> {
+    this.logger.log(`Updating debt status: ${debtId} to ${status}`);
+    try {
+      const debt = await this.debtRepository.findOne({
+        where: { id: debtId },
+        relations: ['outing'],
+      });
+
+      if (!debt) {
+        throw new NotFoundException('Debt not found');
+      }
+
+      debt.status = status;
+      const updatedDebt = await this.debtRepository.save(debt);
+
+      this.logger.log(`Successfully updated debt status: ${debtId}`);
+      return updatedDebt;
+    } catch (error) {
+      this.logger.error(`Failed to update debt status: ${error.message}`);
+      throw error;
+    }
+  }
 }

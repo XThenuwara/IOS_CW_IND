@@ -69,6 +69,7 @@ export class EventService {
   }
 
   async purchaseTickets(userId: string, purchaseDto: PurchaseTicketsDto): Promise<PurchasedTickets> {
+    console.log("🚀 ~ EventService ~ purchaseTickets ~ purchaseDto:", purchaseDto.eventId)
     const event = await this.findOne(purchaseDto.eventId.toLowerCase());
     
     let totalAmount = 0;
@@ -94,6 +95,7 @@ export class EventService {
     const purchase = this.purchasedTicketsRepository.create({
       userId,
       eventId: event.id,
+      outingId: purchaseDto.outingId?.toLowerCase() ?? null,
       ticketType: JSON.stringify(purchaseDto.tickets),
       quantity: purchaseDto.tickets.reduce((sum, item) => sum + item.quantity, 0),
       unitPrice: totalAmount / purchaseDto.tickets.reduce((sum, item) => sum + item.quantity, 0),

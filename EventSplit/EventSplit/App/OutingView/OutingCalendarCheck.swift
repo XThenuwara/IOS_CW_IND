@@ -5,6 +5,7 @@
 //  Created by Yasas Hansaka Thenuwara on 2025-04-12.
 //
 import SwiftUI
+import UIKit
 
 struct OutingCalendarCheck: View {
     let title: String
@@ -37,10 +38,11 @@ struct OutingCalendarCheck: View {
                             showAddToCalendarCard = false
                         }) {
                             Text("Skip")
-                                .fontWeight(.bold)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
                                 .foregroundColor(.gray)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
                                 .background(.primaryBackground)
                                 .foregroundColor(.secondaryBackground)
                                 .cornerRadius(8)
@@ -50,30 +52,56 @@ struct OutingCalendarCheck: View {
                             addToCalendar()
                         }) {
                             Text("Add")
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                                        .background(.secondaryBackground)
-                        .foregroundColor(.primaryBackground)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(.secondaryBackground)
+                                .foregroundColor(.primaryBackground)
                                 .cornerRadius(8)
                         }
                     }
                 }
                 .padding()
-                .background(Color.white)
+                .background(.highLightBackground)
                 .cornerRadius(12)
                 .withShadow()
                 .withBorder()
                 .padding(.horizontal)
+            } else {
+                Button(action: {
+                    if let startDate = startDate {
+                        CalendarService.shared.openEventInCalendar(title: title, startDate: startDate)
+                    }
+                }) {
+                    VStack(spacing: 12) {
+                        HStack {
+                            Image(systemName: "calendar")
+                                .font(.title2)
+                                .foregroundColor(.secondaryBackground)
+                            Text("Event Added to Calendar")
+                                .font(.headline)
+                            Spacer()
+                        }
+                    }
+                    .padding()
+                    .background(.highLightBackground)
+                    .cornerRadius(12)
+                    .withShadow()
+                    .withBorder()
+                    .padding(.horizontal)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
         }
+        .animation(.spring(response: 1, dampingFraction: 0.8), value: showAddToCalendarCard)
         .onAppear {
             checkCalendarEvent()
         }
     }
     
     private func checkCalendarEvent() {
+        print("Checking calendar event...")
         if !CalendarService.shared.checkIfEventExists(title: title, startDate: startDate) {
             showAddToCalendarCard = true
         }

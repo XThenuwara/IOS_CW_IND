@@ -11,6 +11,10 @@ export class SignUpDto {
 
   @IsString()
   @IsNotEmpty()
+  phoneNumber: string;
+
+  @IsString()
+  @IsNotEmpty()
   @MinLength(6)
   password: string;
 }

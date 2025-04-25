@@ -19,7 +19,7 @@ struct DebtRow: View {
     let debt: Debt
     let users: [UserDTO]
     @State private var isUpdating = false
-    let outingService = OutingService(coreDataModel: OutingCoreDataModel.shared)
+    let outingService = OutingService(coreDataModel: OutingCoreDataModel())
     var onStatusUpdate: ((String) -> Void)?
     
     init(debt: Debt, users: [UserDTO], onStatusUpdate: ((String) -> Void)? = nil) {

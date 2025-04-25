@@ -42,8 +42,8 @@ struct ContentView: View {
                             Tabbar(selectedTab: $selectedTab)
                         }
                     }
-                    .navigationDestination(for: OutingEntity.self) { outing in
-                        OutingView(initialOuting: outing)
+                  .navigationDestination(for: OutingDTO.self) { outing in
+                        OutingView(outing: outing)  
                     }
                 }
             } else {
